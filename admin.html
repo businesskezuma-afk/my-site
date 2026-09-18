@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - Secure Marketplace</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff0033' font-family='Arial, sans-serif' font-weight='900' font-size='75'>K</text></svg>">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+  body { background: #090909; color: #f5f5f5; min-height: 100vh; padding: 40px 20px; animation: fadeIn 0.4s ease-in-out; }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #090909; display: flex; justify-content: center; align-items: center; z-index: 999; }
+  .login-box { background: #101010; border: 1px solid #202020; padding: 30px; border-radius: 14px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+  .login-box h2 { color: #00d564; margin-bottom: 15px; font-size: 20px; font-weight: 900; }
+
+  .admin-container { max-width: 900px; margin: 0 auto; background: #101010; border: 1px solid #202020; border-radius: 14px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); animation: fadeIn 0.4s ease-in-out; }
+  .admin-header { margin-bottom: 25px; text-align: center; border-bottom: 1px solid #202020; padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+  .admin-header-text h1 { color: #00d564; font-size: 22px; font-weight: 900; text-align: left; }
+  .admin-header-text p { color: #8b8b8b; font-size: 11px; margin-top: 3px; text-align: left; }
+  
+  .logout-btn { padding: 8px 12px; background: #222; border: 1px solid #333; color: #ff5f56; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+  .logout-btn:hover { background: #ff5f56; color: #fff; }
+
+  .form-group { margin-bottom: 15px; text-align: left; }
+  .form-group label { display: block; margin-bottom: 5px; font-size: 11px; color: #aaa; font-weight: bold; text-transform: uppercase; }
+  .form-control { width: 100%; padding: 12px; background: #141414; border: 1px solid #292929; border-radius: 8px; color: #fff; font-size: 14px; outline: none; transition: 0.2s; }
+  .form-control:focus { border-color: #00d564; background: #181818; }
+  input[type="file"] { padding: 9px; cursor: pointer; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+  .dynamic-section { margin-top: 20px; padding-top: 20px; border-top: 1px dashed #292929; }
+  .section-title { color: #00d564; font-size: 13px; font-weight: 900; margin-bottom: 15px; text-transform: uppercase; }
+  .submit-btn { width: 100%; padding: 15px; margin-top: 20px; background: #00d564; color: #000; border: none; border-radius: 8px; font-size: 14px; font-weight: 900; cursor: pointer; transition: 0.2s; }
+  .submit-btn:hover { background: #00e676; }
+  #statusMessage { margin-top: 15px; padding: 10px; border-radius: 8px; text-align: center; font-size: 12px; font-weight: bold; display: none; }
+  
+  .filter-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; flex-wrap: wrap; }
+  .filter-btn { padding: 7px 12px; background: #181818; border: 1px solid #292929; color: #aaa; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+  .filter-btn.active { background: #00d564; color: #000; border-color: #00d564; }
+  
+  .table-container { width: 100%; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; }
+  th, td { padding: 12px; border-bottom: 1px solid #202020; transition: background 0.2s; }
+  tr:hover td { background: rgba(255,255,255,0.01); }
+  th { background: #151515; color: #00d564; text-transform: uppercase; font-size: 10px; }
+  .thumb { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; background: #222; border: 1px solid #333; }
+  .action-btn { padding: 6px 10px; border-radius: 6px; border: none; font-size: 10px; font-weight: bold; cursor: pointer; margin-right: 5px; transition: 0.2s; }
+  .sold-btn { background: #e89a24; color: #000; }
+  .sold-btn:hover { opacity: 0.8; }
+  .delete-btn { background: #e53935; color: #fff; }
+  .delete-btn:hover { opacity: 0.8; }
+  .approve-btn { background: #00d564; color: #000; }
+  .approve-btn:hover { opacity: 0.8; }
+
+  .pagination-container { display: flex; justify-content: center; align-items: center; gap: 5px; margin-top: 20px; flex-wrap: wrap; }
+  .page-btn { padding: 6px 12px; background: #181818; border: 1px solid #292929; color: #aaa; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+  .page-btn:hover { background: #252525; color: #fff; }
+  .page-btn.active { background: #00d564; color: #000; border-color: #00d564; }
+  .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+</style>
+</head>
+<body>
+
+<div id="loginOverlay">
+  <div class="login-box">
+    <h2>ADMIN LOGIN</h2>
+    <p style="color: #777; font-size: 11px; margin-bottom: 15px;">I-type ang iyong Supabase admin account</p>
+    <div class="form-group">
+      <input type="email" id="adminEmail" class="form-control" placeholder="Admin Email" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <input type="password" id="adminPassword" class="form-control" placeholder="Password" autocomplete="current-password">
+    </div>
+    <button class="submit-btn" onclick="loginAdmin()" style="margin-top: 5px;">LOG IN</button>
+    <div id="loginError" style="color: #ff5f56; font-size: 11px; margin-top: 10px; display: none;">Mali ang email o password!</div>
+  </div>
+</div>
+
+<div id="adminMainContent" style="display: none;">
+  <!-- SHOP STATUS CONTROL SECTION -->
+  <div class="admin-container">
+    <div class="admin-header" style="border:none; margin-bottom:15px; padding-bottom:0;">
+      <div class="admin-header-text">
+        <h1>SHOP STATUS CONTROL</h1>
+        <p>I-set kung ang shop ay Online o Offline para sa mga buyers</p>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Current Status</label>
+      <select id="shopStatusSelect" class="form-control">
+        <option value="online">ONLINE & READY</option>
+        <option value="offline">OFFLINE (MESSAGE ONLY)</option>
+      </select>
+    </div>
+    <button class="submit-btn" onclick="saveShopStatus()" style="margin-top: 5px; background: #00d564; color: #000;">SAVE STATUS</button>
+    <div id="statusControlMsg" style="font-size: 11px; color: #00d564; margin-top: 8px; text-align: center; display: none;">Na-update na ang shop status!</div>
+  </div>
+
+  <div class="admin-container">
+    <div class="admin-header" style="border:none; margin-bottom:15px; padding-bottom:0;">
+      <div class="admin-header-text">
+        <h1>MANAGE PROMO BANNER</h1>
+        <p>I-edit ang nakalagay na anunsyo sa itaas ng user website</p>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Announcement Text</label>
+      <input type="text" id="bannerInput" class="form-control" placeholder="e.g. 🔥 100% Legit & Trusted Roblox Marketplace!">
+    </div>
+    <button class="submit-btn" onclick="saveBanner()" style="margin-top: 5px; background: #e89a24; color: #000;">UPDATE BANNER</button>
+    <div id="bannerStatus" style="font-size: 11px; color: #00d564; margin-top: 8px; text-align: center; display: none;">Na-update na ang banner!</div>
+  </div>
+
+  <div class="admin-container">
+    <div class="admin-header">
+      <div class="admin-header-text">
+        <h1>ADMIN PANEL</h1>
+        <p>Upload new accounts & items with 1 screenshot</p>
+      </div>
+      <button class="logout-btn" onclick="logoutAdmin()">LOG OUT</button>
+    </div>
+
+    <form id="uploadForm">
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Game Category</label>
+          <select id="game" class="form-control" onchange="renderDynamicFields()" required>
+            <option value="" disabled selected>Select Game</option>
+            <option value="steal an egg">Steal An Egg</option>
+            <option value="steal a brainrot">Steal A Brainrot</option>
+            <option value="blox fruits">Blox Fruits</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Item / Account ID</label>
+          <input type="text" id="accId" class="form-control" placeholder="e.g. ACC-101" required>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="form-group">
+          <label>Username / Title</label>
+          <input type="text" id="username" class="form-control" placeholder="Roblox Username or Title" required>
+        </div>
+        <div class="form-group">
+          <label>Price</label>
+          <input type="text" id="price" class="form-control" placeholder="e.g. ₱500" required>
+        </div>
+        <div class="form-group">
+          <label>Featured?</label>
+          <select id="featured" class="form-control">
+            <option value="false">No</option>
+            <option value="true">Yes</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Listing Type (Account or Item)</label>
+        <select id="listingType" class="form-control">
+          <option value="Account" selected>Account</option>
+          <option value="Item">Item</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Screenshot (1 Image)</label>
+        <input type="file" id="accountImage" class="form-control" accept="image/*" required>
+      </div>
+
+      <div id="dynamicFieldsContainer" class="dynamic-section" style="display: none;">
+        <div id="dynamicTitle" class="section-title">GAME DETAILS</div>
+        <div id="dynamicInputs" class="grid-2"></div>
+      </div>
+
+      <button type="submit" class="submit-btn">UPLOAD LISTING</button>
+      <div id="statusMessage"></div>
+    </form>
+  </div>
+
+  <div class="admin-container">
+    <div class="admin-header" style="border:none; margin-bottom:0; padding-bottom:0;">
+      <div class="admin-header-text">
+        <h1>MANAGE CUSTOMER VOUCHES</h1>
+        <p>I-approve o i-delete ang mga isinumiteng review ng mga customer</p>
+      </div>
+    </div>
+    <div class="table-container" style="margin-top: 15px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Game / Item</th>
+            <th>Rating</th>
+            <th>Feedback</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="vouchTableBody">
+          <tr><td colspan="6" style="text-align: center; color: #666;">Loading vouches...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="vouchPaginationContainer" class="pagination-container"></div>
+  </div>
+
+  <div class="admin-container">
+    <div class="admin-header" style="border:none; margin-bottom:0; padding-bottom:0;">
+      <div class="admin-header-text">
+        <h1>MANAGE INVENTORY</h1>
+        <p>Filter and control all uploaded items and accounts</p>
+      </div>
+    </div>
+
+    <div class="filter-row" style="margin-top: 15px;">
+      <div style="display: flex; gap: 5px;">
+        <button class="filter-btn active" id="filterAll" onclick="setAdminFilter('all', this)">All Items</button>
+        <button class="filter-btn" id="filterAvailable" onclick="setAdminFilter('Available', this)">Available Only</button>
+        <button class="filter-btn" id="filterSold" onclick="setAdminFilter('Sold', this)">Sold Only</button>
+      </div>
+      <div id="inventoryCount" style="color: #666; font-size: 11px;">Showing all items</div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>ID</th>
+            <th>Game</th>
+            <th>Type</th>
+            <th>Username/Title</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="inventoryTableBody">
+          <tr><td colspan="8" style="text-align: center; color: #666;">Loading inventory...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="paginationContainer" class="pagination-container"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const { createClient } = supabase;
+  const supabaseUrl = 'https://ytrtivbepvpjbgdtuqrt.supabase.co';
+  const supabaseKey = 'sb_publishable_qWOJctjWQouOqSzjek73pw_FYz7MbyS';
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+  let allAdminAccounts = [];
+  let currentAdminFilter = "all";
+  let currentInventoryPage = 1;
+  const ITEMS_PER_ADMIN_PAGE = 10;
+
+  let allAdminVouches = [];
+  let currentVouchPage = 1;
+  const VOUCHES_PER_ADMIN_PAGE = 10;
+
+  async function checkAuthSession() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('adminMainContent').style.display = 'block';
+      loadAdminInventory();
+      loadAdminVouches();
+      loadBannerText();
+      loadShopStatus();
+    }
+  }
+
+  async function loginAdmin() {
+    const email = document.getElementById('adminEmail').value.trim();
+    const password = document.getElementById('adminPassword').value;
+    const errDiv = document.getElementById('loginError');
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+
+    if (error) {
+      errDiv.style.display = 'block';
+    } else {
+      errDiv.style.display = 'none';
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('adminMainContent').style.display = 'block';
+      loadAdminInventory();
+      loadAdminVouches();
+      loadBannerText();
+      loadShopStatus();
+    }
+  }
+
+  async function logoutAdmin() {
+    await supabaseClient.auth.signOut();
+    location.reload();
+  }
+
+  async function loadBannerText() {
+    const saved = localStorage.getItem('site_announcement') || "🔥 100% Legit & Trusted Roblox Marketplace! Mag-ingat sa mga scammer.";
+    document.getElementById('bannerInput').value = saved;
+  }
+
+  async function saveBanner() {
+    const text = document.getElementById('bannerInput').value;
+    localStorage.setItem('site_announcement', text);
+    const msg = document.getElementById('bannerStatus');
+    msg.style.display = 'block';
+    setTimeout(() => { msg.style.display = 'none'; }, 3000);
+  }
+
+  function loadShopStatus() {
+    const current = localStorage.getItem('shop_availability') || 'online';
+    const select = document.getElementById('shopStatusSelect');
+    if(select) select.value = current;
+  }
+
+  function saveShopStatus() {
+    const val = document.getElementById('shopStatusSelect').value;
+    localStorage.setItem('shop_availability', val);
+    const msg = document.getElementById('statusControlMsg');
+    msg.style.display = 'block';
+    setTimeout(() => { msg.style.display = 'none'; }, 3000);
+  }
+
+  document.getElementById('adminPassword').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') loginAdmin();
+  });
+
+  const fieldTemplates = {
+    "steal an egg": `
+      <div class="form-group"><label>Money</label><input type="text" id="money" class="form-control" placeholder="e.g. 1M"></div>
+      <div class="form-group"><label>Money / Second</label><input type="text" id="moneyPerSecond" class="form-control" placeholder="e.g. 10k"></div>
+      <div class="form-group"><label>Speed</label><input type="text" id="speed" class="form-control" placeholder="e.g. 200"></div>
+    `,
+    "steal a brainrot": `
+      <div class="form-group"><label>Money</label><input type="text" id="money" class="form-control" placeholder="e.g. 10M"></div>
+      <div class="form-group"><label>Steals</label><input type="text" id="steals" class="form-control" placeholder="e.g. 5K"></div>
+      <div class="form-group"><label>Rebirth</label><input type="text" id="rebirth" class="form-control" placeholder="e.g. 10"></div>
+      <div class="form-group">
+        <label>Admin Panel</label>
+        <select id="adminPanel" class="form-control">
+          <option value="False">False</option>
+          <option value="True">True</option>
+        </select>
+      </div>
+    `,
+    "blox fruits": `
+      <div class="form-group"><label>Level</label><input type="text" id="level" class="form-control" placeholder="e.g. 2550"></div>
+      <div class="form-group"><label>Bounty</label><input type="text" id="bounty" class="form-control" placeholder="e.g. 2.5M"></div>
+      <div class="form-group"><label>Fruit</label><input type="text" id="fruit" class="form-control" placeholder="e.g. Kitsune"></div>
+      <div class="form-group"><label>Fighting Style</label><input type="text" id="fightingStyle" class="form-control" placeholder="e.g. Godhuman"></div>
+      <div class="form-group"><label>Race</label><input type="text" id="race" class="form-control" placeholder="e.g. Shark v4"></div>
+      <div class="form-group"><label>Permanent Fruit</label><input type="text" id="permanentFruit" class="form-control" placeholder="e.g. Dough (Optional)"></div>
+      <div class="form-group"><label>Gamepass</label><input type="text" id="gamepass" class="form-control" placeholder="e.g. Dark Blade (Optional)"></div>
+    `
+  };
+
+  function renderDynamicFields() {
+    const game = document.getElementById('game').value;
+    const container = document.getElementById('dynamicFieldsContainer');
+    const inputs = document.getElementById('dynamicInputs');
+    const title = document.getElementById('dynamicTitle');
+
+    if (fieldTemplates[game]) {
+      container.style.display = 'block';
+      title.textContent = game.toUpperCase() + " DETAILS";
+      inputs.innerHTML = fieldTemplates[game];
+    } else {
+      container.style.display = 'none';
+      inputs.innerHTML = '';
+    }
+  }
+
+  async function loadAdminVouches() {
+    const { data, error } = await supabaseClient.from('vouches').select('*').order('date_added', { ascending: false });
+    if(error) return;
+    allAdminVouches = data || [];
+    renderVouchTable();
+  }
+
+  function renderVouchTable() {
+    const tbody = document.getElementById('vouchTableBody');
+    const paginationContainer = document.getElementById('vouchPaginationContainer');
+
+    if(allAdminVouches.length === 0){
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #666;">No customer reviews found.</td></tr>`;
+      paginationContainer.innerHTML = "";
+      return;
+    }
+
+    const totalPages = Math.ceil(allAdminVouches.length / VOUCHES_PER_ADMIN_PAGE);
+    if (currentVouchPage > totalPages) currentVouchPage = totalPages;
+    if (currentVouchPage < 1) currentVouchPage = 1;
+
+    const startIdx = (currentVouchPage - 1) * VOUCHES_PER_ADMIN_PAGE;
+    const paginatedVouches = allAdminVouches.slice(startIdx, startIdx + VOUCHES_PER_ADMIN_PAGE);
+
+    tbody.innerHTML = paginatedVouches.map(v => `
+      <tr>
+        <td><b>${escapeHTML(v.customer_name)}</b></td>
+        <td>${escapeHTML(v.game)}</td>
+        <td>${"⭐".repeat(v.rating)}</td>
+        <td>"${escapeHTML(v.feedback)}"</td>
+        <td><span style="padding:3px 8px; border-radius:4px; font-size:9px; background:${v.status === 'Approved' ? 'rgba(0,213,100,0.1); color:#00d564;' : 'rgba(232,154,36,0.1); color:#e89a24;'};">${v.status || 'Pending'}</span></td>
+        <td>
+          ${v.status !== 'Approved' ? `<button class="action-btn approve-btn" onclick="updateVouchStatus('${v.id}', 'Approved')">Approve</button>` : `<button class="action-btn sold-btn" onclick="updateVouchStatus('${v.id}', 'Pending')">Hide</button>`}
+          <button class="action-btn delete-btn" onclick="deleteVouch('${v.id}')">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+
+    let paginationHTML = `
+      <button class="page-btn" onclick="changeVouchPage(1)" ${currentVouchPage === 1 ? 'disabled' : ''}>First</button>
+      <button class="page-btn" onclick="changeVouchPage(${currentVouchPage - 1})" ${currentVouchPage === 1 ? 'disabled' : ''}>Prev</button>
+    `;
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentVouchPage - 2 && i <= currentVouchPage + 2)) {
+        paginationHTML += `<button class="page-btn ${i === currentVouchPage ? 'active' : ''}" onclick="changeVouchPage(${i})">${i}</button>`;
+      }
+    }
+
+    paginationHTML += `
+      <button class="page-btn" onclick="changeVouchPage(${currentVouchPage + 1})" ${currentVouchPage === totalPages ? 'disabled' : ''}>Next</button>
+      <button class="page-btn" onclick="changeVouchPage(${totalPages})" ${currentVouchPage === totalPages ? 'disabled' : ''}>Last</button>
+    `;
+
+    paginationContainer.innerHTML = paginationHTML;
+  }
+
+  function changeVouchPage(page) {
+    currentVouchPage = page;
+    renderVouchTable();
+  }
+
+  async function updateVouchStatus(id, newStatus) {
+    const { error } = await supabaseClient.from('vouches').update({ status: newStatus }).eq('id', id);
+    if(error) alert("Error updating vouch: " + error.message);
+    else loadAdminVouches();
+  }
+
+  async function deleteVouch(id) {
+    if(!confirm("Are you sure you want to delete this review?")) return;
+    const { error } = await supabaseClient.from('vouches').delete().eq('id', id);
+    if(error) alert("Error deleting vouch: " + error.message);
+    else loadAdminVouches();
+  }
+
+  async function loadAdminInventory() {
+    const tbody = document.getElementById('inventoryTableBody');
+    const { data, error } = await supabaseClient.from('accounts').select('*').order('dateAdded', { ascending: false });
+    
+    if (error) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: red;">Error loading inventory</td></tr>`;
+      return;
+    }
+
+    allAdminAccounts = data || [];
+    renderAdminTable();
+  }
+
+  function setAdminFilter(status, btn) {
+    currentAdminFilter = status;
+    currentInventoryPage = 1;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderAdminTable();
+  }
+
+  function renderAdminTable() {
+    const tbody = document.getElementById('inventoryTableBody');
+    const countLabel = document.getElementById('inventoryCount');
+    const paginationContainer = document.getElementById('paginationContainer');
+
+    let filtered = allAdminAccounts;
+    if (currentAdminFilter !== "all") {
+      filtered = allAdminAccounts.filter(acc => String(acc.status).toLowerCase() === currentAdminFilter.toLowerCase());
+    }
+
+    countLabel.textContent = `Showing total ${filtered.length} items`;
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #666;">No items found.</td></tr>`;
+      paginationContainer.innerHTML = "";
+      return;
+    }
+
+    const totalPages = Math.ceil(filtered.length / ITEMS_PER_ADMIN_PAGE);
+    if (currentInventoryPage > totalPages) currentInventoryPage = totalPages;
+    if (currentInventoryPage < 1) currentInventoryPage = 1;
+
+    const startIdx = (currentInventoryPage - 1) * ITEMS_PER_ADMIN_PAGE;
+    const paginatedItems = filtered.slice(startIdx, startIdx + ITEMS_PER_ADMIN_PAGE);
+
+    tbody.innerHTML = paginatedItems.map(acc => `
+      <tr>
+        <td>${acc.image_url ? `<img src="${acc.image_url}" class="thumb">` : 'No Image'}</td>
+        <td><b>${acc.id}</b></td>
+        <td style="text-transform:uppercase;">${acc.game}</td>
+        <td><span style="padding:2px 6px; border-radius:4px; font-size:9px; background:#222; color:#00d564; font-weight:bold;">${acc.listing_type || 'Account'}</span></td>
+        <td>${acc.account}</td>
+        <td style="color:#00d564; font-weight:bold;">${acc.price}</td>
+        <td><span style="padding:3px 8px; border-radius:4px; font-size:9px; background:${acc.status === 'Available' ? 'rgba(0,213,100,0.1); color:#00d564;' : 'rgba(232,154,36,0.1); color:#e89a24;'};">${acc.status}</span></td>
+        <td>
+          <button class="action-btn sold-btn" onclick="toggleSold('${acc.id}', '${acc.status}')">${acc.status === 'Available' ? 'Mark Sold' : 'Make Available'}</button>
+          <button class="action-btn delete-btn" onclick="deleteAccount('${acc.id}')">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+
+    let paginationHTML = `
+      <button class="page-btn" onclick="changeAdminPage(1)" ${currentInventoryPage === 1 ? 'disabled' : ''}>First</button>
+      <button class="page-btn" onclick="changeAdminPage(${currentInventoryPage - 1})" ${currentInventoryPage === 1 ? 'disabled' : ''}>Prev</button>
+    `;
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentInventoryPage - 2 && i <= currentInventoryPage + 2)) {
+        paginationHTML += `<button class="page-btn ${i === currentInventoryPage ? 'active' : ''}" onclick="changeAdminPage(${i})">${i}</button>`;
+      }
+    }
+
+    paginationHTML += `
+      <button class="page-btn" onclick="changeAdminPage(${currentInventoryPage + 1})" ${currentInventoryPage === totalPages ? 'disabled' : ''}>Next</button>
+      <button class="page-btn" onclick="changeAdminPage(${totalPages})" ${currentInventoryPage === totalPages ? 'disabled' : ''}>Last</button>
+    `;
+
+    paginationContainer.innerHTML = paginationHTML;
+  }
+
+  function changeAdminPage(page) {
+    currentInventoryPage = page;
+    renderAdminTable();
+  }
+
+  async function toggleSold(id, currentStatus) {
+    const newStatus = currentStatus === 'Available' ? 'Sold' : 'Available';
+    const { error } = await supabaseClient.from('accounts').update({ status: newStatus }).eq('id', id);
+    if (error) alert("Error updating status: " + error.message);
+    else loadAdminInventory();
+  }
+
+  async function deleteAccount(id) {
+    if (!confirm(`Are you sure you want to delete item ${id}?`)) return;
+    const { error } = await supabaseClient.from('accounts').delete().eq('id', id);
+    if (error) alert("Error deleting item: " + error.message);
+    else loadAdminInventory();
+  }
+
+  function escapeHTML(value){
+    return String(value ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+  }
+
+  document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const game = document.getElementById('game').value;
+    if (!game) { alert("Please select a Game Category first."); return; }
+
+    const submitBtn = document.querySelector('.submit-btn');
+    submitBtn.textContent = "UPLOADING IMAGE & DATA...";
+    submitBtn.disabled = true;
+
+    const statusMsg = document.getElementById('statusMessage');
+
+    try {
+      const imageFile = document.getElementById('accountImage').files[0];
+      let imageUrl = "";
+
+      if (imageFile) {
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabaseClient.storage
+          .from('account-images')
+          .upload(filePath, imageFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabaseClient.storage
+          .from('account-images')
+          .getPublicUrl(filePath);
+
+        imageUrl = publicUrlData.publicUrl;
+      }
+
+      const listingType = document.getElementById('listingType').value;
+
+      const accountData = {
+        id: document.getElementById('accId').value,
+        account: document.getElementById('username').value,
+        game: game,
+        listing_type: listingType,
+        price: document.getElementById('price').value,
+        featured: document.getElementById('featured').value,
+        image_url: imageUrl,
+        status: "Available",
+        dateAdded: new Date().toISOString().split('T')[0]
+      };
+
+      const getVal = (id) => { const el = document.getElementById(id); return el ? el.value : ""; };
+
+      if (game === "steal an egg") {
+        accountData.money = getVal('money');
+        accountData.moneyPerSecond = getVal('moneyPerSecond');
+        accountData.speed = getVal('speed');
+      } else if (game === "steal a brainrot") {
+        accountData.money = getVal('money');
+        accountData.steals = getVal('steals');
+        accountData.rebirth = getVal('rebirth');
+        accountData.adminPanel = getVal('adminPanel');
+      } else if (game === "blox fruits") {
+        accountData.level = getVal('level');
+        accountData.bounty = getVal('bounty');
+        accountData.fruit = getVal('fruit');
+        accountData.fightingStyle = getVal('fightingStyle');
+        accountData.race = getVal('race');
+        accountData.permanentFruit = getVal('permanentFruit');
+        accountData.gamepass = getVal('gamepass');
+      }
+
+      const { error: dbError } = await supabaseClient.from('accounts').insert([accountData]);
+      if (dbError) throw dbError;
+
+      statusMsg.textContent = `Listing [${accountData.id}] uploaded successfully!`;
+      statusMsg.style.color = "#00d564";
+      statusMsg.style.backgroundColor = "rgba(0,213,100,0.1)";
+      statusMsg.style.display = 'block';
+      document.getElementById('uploadForm').reset();
+      document.getElementById('listingType').value = "Account";
+      document.getElementById('dynamicFieldsContainer').style.display = 'none';
+      loadAdminInventory();
+
+    } catch (err) {
+      console.error(err);
+      statusMsg.textContent = `Error: ${err.message}`;
+      statusMsg.style.color = "#ff5f56";
+      statusMsg.style.backgroundColor = "rgba(255,95,86,0.1)";
+      statusMsg.style.display = 'block';
+    }
+
+    submitBtn.textContent = "UPLOAD LISTING";
+    submitBtn.disabled = false;
+    setTimeout(() => { statusMsg.style.display = 'none'; }, 5000);
+  });
+
+  checkAuthSession();
+</script>
+
+</body>
+</html>

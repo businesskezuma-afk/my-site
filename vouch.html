@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Submit Vouch & Review - Roblox Marketplace</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff0033' font-family='Arial, sans-serif' font-weight='900' font-size='75'>K</text></svg>">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+  body { background: #090909; color: #f5f5f5; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+  .vouch-container { background: #101010; border: 1px solid #202020; border-radius: 14px; padding: 30px; width: 100%; max-width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+  .vouch-header { text-align: center; margin-bottom: 25px; }
+  .vouch-header h1 { color: #00d564; font-size: 22px; font-weight: 900; margin-bottom: 5px; }
+  .vouch-header p { color: #8b8b8b; font-size: 12px; }
+  .form-group { margin-bottom: 15px; text-align: left; }
+  .form-group label { display: block; margin-bottom: 5px; font-size: 11px; color: #aaa; font-weight: bold; text-transform: uppercase; }
+  .form-control { width: 100%; padding: 12px; background: #141414; border: 1px solid #292929; border-radius: 8px; color: #fff; font-size: 14px; outline: none; transition: 0.2s; }
+  .form-control:focus { border-color: #00d564; }
+  textarea.form-control { resize: vertical; height: 90px; }
+  .submit-btn { width: 100%; padding: 14px; margin-top: 10px; background: #00d564; color: #000; border: none; border-radius: 8px; font-size: 14px; font-weight: 900; cursor: pointer; transition: 0.2s; }
+  .submit-btn:hover { background: #00e676; }
+  .back-link { display: block; text-align: center; margin-top: 15px; color: #888; font-size: 11px; text-decoration: none; }
+  .back-link:hover { color: #fff; }
+  #statusMsg { margin-top: 15px; padding: 10px; border-radius: 8px; text-align: center; font-size: 12px; font-weight: bold; display: none; }
+</style>
+</head>
+<body>
+
+<div class="vouch-container">
+  <div class="vouch-header">
+    <h1>CUSTOMER VOUCH</h1>
+    <p>Iwanan ang iyong review at star rating para sa shop!</p>
+  </div>
+
+  <form id="customerVouchForm">
+    <div class="form-group">
+      <label>Your Name / Facebook Name</label>
+      <input type="text" id="custName" class="form-control" placeholder="e.g. Juan Dela Cruz" required>
+    </div>
+
+    <div class="form-group">
+      <label>Game / Item Purchased</label>
+      <input type="text" id="custGame" class="form-control" placeholder="e.g. Blox Fruits / Kitsune" required>
+    </div>
+
+    <div class="form-group">
+      <label>Rating</label>
+      <select id="custRating" class="form-control">
+        <option value="5">⭐⭐⭐⭐⭐ (5 - Excellent)</option>
+        <option value="4">⭐⭐⭐⭐ (4 - Very Good)</option>
+        <option value="3">⭐⭐⭐ (3 - Good)</option>
+        <option value="2">⭐⭐ (2 - Fair)</option>
+        <option value="1">⭐ (1 - Poor)</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Feedback / Message</label>
+      <textarea id="custFeedback" class="form-control" placeholder="Isulat ang karanasan mo sa transaksiyon..." required></textarea>
+    </div>
+
+    <button type="submit" class="submit-btn">SUBMIT VOUCH</button>
+    <div id="statusMsg"></div>
+  </form>
+
+  <a href="index.html" class="back-link">← Bumalik sa Marketplace</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const { createClient } = supabase;
+  const supabaseUrl = 'https://ytrtivbepvpjbgdtuqrt.supabase.co';
+  const supabaseKey = 'sb_publishable_qWOJctjWQouOqSzjek73pw_FYz7MbyS';
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+  document.getElementById('customerVouchForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.querySelector('.submit-btn');
+    const msg = document.getElementById('statusMsg');
+    btn.textContent = "ISINUSUMITE...";
+    btn.disabled = true;
+
+    try {
+      const vouchData = {
+        customer_name: document.getElementById('custName').value,
+        game: document.getElementById('custGame').value,
+        rating: parseInt(document.getElementById('custRating').value),
+        feedback: document.getElementById('custFeedback').value,
+        status: 'Pending'
+      };
+
+      const { error } = await supabaseClient.from('vouches').insert([vouchData]);
+      if(error) throw error;
+
+      msg.textContent = "Maraming salamat! Na-submit na ang iyong vouch at naghihintay na lamang ng admin approval.";
+      msg.style.color = "#00d564";
+      msg.style.backgroundColor = "rgba(0,213,100,0.1)";
+      msg.style.display = "block";
+      document.getElementById('customerVouchForm').reset();
+    } catch(err) {
+      msg.textContent = "Error: " + err.message;
+      msg.style.color = "red";
+      msg.style.backgroundColor = "rgba(255,0,0,0.1)";
+      msg.style.display = "block";
+    }
+
+    btn.textContent = "SUBMIT VOUCH";
+    btn.disabled = false;
+  });
+</script>
+
+</body>
+</html>
