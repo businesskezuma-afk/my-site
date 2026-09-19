@@ -7,23 +7,19 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff0033' font-family='Arial, sans-serif' font-weight='900' font-size='75'>K</text></svg>">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-  body { background: #090909; color: #f5f5f5; min-height: 100vh; padding: 30px 20px; }
-  .container { max-width: 1000px; margin: 0 auto; }
-  .header { text-align: center; margin-bottom: 30px; }
-  .header h1 { color: #e89a24; font-size: 26px; font-weight: 900; margin-bottom: 5px; }
-  .header p { color: #8b8b8b; font-size: 12px; }
-  
-  .back-link { display: inline-block; margin-bottom: 20px; color: #00d564; font-size: 12px; text-decoration: none; font-weight: bold; }
-  .back-link:hover { text-decoration: underline; }
-
-  .sold-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
-  .sold-card { background: #101010; border: 1px solid #252010; border-radius: 12px; padding: 18px; position: relative; }
-  .sold-badge { display: inline-block; padding: 4px 8px; background: rgba(232,154,36,0.1); border: 1px solid rgba(232,154,36,0.3); color: #e89a24; font-size: 9px; font-weight: 900; border-radius: 999px; margin-bottom: 10px; text-transform: uppercase; }
-  .sold-id { font-size: 15px; font-weight: 900; color: #fff; margin-bottom: 8px; }
-  .sold-details { font-size: 11px; color: #999; margin-bottom: 10px; }
-  .sold-price { font-size: 14px; font-weight: 900; color: #e89a24; }
-  .spinner { width: 24px; height: 24px; border: 3px solid rgba(232,154,36,0.2); border-top-color: #e89a24; border-radius: 50%; animation: spin 0.6s linear infinite; margin: 40px auto; }
-  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  body { background: #090909; color: #f5f5f5; min-height: 100vh; padding: 20px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .header { text-align: center; margin-bottom: 25px; }
+  .header h1 { color: #e89a24; font-size: 24px; font-weight: 900; }
+  .account-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .account-card { background: #101010; border: 1px solid #202020; border-radius: 12px; padding: 15px; }
+  .status-sold { color: #e89a24; font-weight: bold; font-size: 10px; }
+  .pagination-container { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 30px; }
+  .page-btn { padding: 8px 12px; background: #141414; border: 1px solid #292929; color: #aaa; border-radius: 8px; cursor: pointer; font-size: 11px; }
+  .page-btn.active { background: #e89a24; color: #000; font-weight: bold; }
+  .page-btn:disabled { opacity: 0.4; }
+  .back-link { display: inline-block; margin-bottom: 20px; color: #888; text-decoration: none; font-size: 12px; }
+  .back-link:hover { color: #fff; }
 </style>
 </head>
 <body>
@@ -31,61 +27,89 @@
 <div class="container">
   <a href="index.html" class="back-link">← Back to Marketplace</a>
   <div class="header">
-    <h1>SOLD ITEMS & ACCOUNTS HISTORY</h1>
-    <p>List of previously sold items and accounts.</p>
+    <h1>SOLD ITEMS HISTORY</h1>
+    <p style="color: #777; font-size: 12px;">Mga naibenta nang accounts at items.</p>
   </div>
 
-  <div id="soldGrid" class="sold-grid">
-    <div style="grid-column: 1/-1; text-align: center;"><div class="spinner"></div></div>
+  <div id="soldGrid" class="account-grid">
+    <div style="color: #666; font-size: 11px;">Loading sold history...</div>
   </div>
+
+  <div id="paginationContainer" class="pagination-container" style="display:none;"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+  const ITEMS_PER_PAGE = 20; // 20 items bawat page
+  let currentPage = 1;
+  let soldList = [];
+
   const { createClient } = supabase;
   const supabaseUrl = 'https://ytrtivbepvpjbgdtuqrt.supabase.co';
   const supabaseKey = 'sb_publishable_qWOJctjWQouOqSzjek73pw_FYz7MbyS';
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-  function escapeHTML(value){
-    return String(value ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
-  }
-
-  function formatPrice(price){
-    if(!price) return "₱0";
-    let value = String(price).trim().replace(/₱/g,"").replace(/,/g,"");
-    const number = parseFloat(value.replace(/[^0-9.-]/g, ""));
-    if(isNaN(number)) return "₱" + String(price).trim();
-    return "₱" + number.toLocaleString("en-PH");
-  }
-
-  async function loadSoldHistory() {
+  async function loadSoldItems() {
     const grid = document.getElementById('soldGrid');
     try {
-      const { data, error } = await supabaseClient.from('accounts').select('*').ilike('status', 'Sold');
+      const { data, error } = await supabaseClient.from('accounts').select('*').eq('status', 'Sold').order('id', { ascending: false });
       if(error) throw error;
 
       if(!data || data.length === 0) {
-        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #666; font-size: 12px; padding: 40px;">No sold history records found yet.</div>`;
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #666; padding: 30px;">No sold items found yet.</div>`;
         return;
       }
 
-      grid.innerHTML = data.map(item => `
-        <div class="sold-card">
-          <span class="sold-badge">📦 SOLD ITEM</span>
-          <div class="sold-id">${escapeHTML(item.id)}</div>
-          <div class="sold-details">Game: <b>${escapeHTML(item.game)}</b><br>Type: ${escapeHTML(item.listing_type || 'Account')}</div>
-          <div class="sold-price">${escapeHTML(formatPrice(item.price))}</div>
-        </div>
-      `).join('');
+      soldList = data;
+      renderSoldPage();
     } catch(err) {
-      console.error(err);
-      grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #ff5f56; font-size: 12px;">Failed to load sold history.</div>`;
+      grid.innerHTML = `<div style="color: #ff5f56;">Error loading sold items.</div>`;
     }
   }
 
-  loadSoldHistory();
-</script>
+  function renderSoldPage() {
+    const grid = document.getElementById('soldGrid');
+    const paginationContainer = document.getElementById('paginationContainer');
+    
+    const totalPages = Math.ceil(soldList.length / ITEMS_PER_PAGE);
+    if(currentPage > totalPages) currentPage = totalPages || 1;
 
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const visibleList = soldList.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+    grid.innerHTML = visibleList.map(item => `
+      <div class="account-card">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span style="font-size:10px; color:#777; text-transform:uppercase;">${item.game}</span>
+          <span class="status-sold">SOLD</span>
+        </div>
+        <div style="font-size:14px; font-weight:bold; color:#fff; margin-bottom:5px;">ID: ${item.id}</div>
+        <div style="font-size:12px; color:#00d564; font-weight:bold;">₱${item.price}</div>
+      </div>
+    `).join('');
+
+    if(totalPages > 1){
+      paginationContainer.style.display = "flex";
+      let html = `<button class="page-btn" onclick="changePage(1)" ${currentPage === 1 ? 'disabled' : ''}>First</button>`;
+      for(let i = 1; i <= totalPages; i++) {
+        if(i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+          html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+        }
+      }
+      html += `<button class="page-btn" onclick="changePage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>Last</button>`;
+      paginationContainer.innerHTML = html;
+    } else {
+      paginationContainer.style.display = "none";
+    }
+  }
+
+  function changePage(page) {
+    currentPage = page;
+    renderSoldPage();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  loadSoldItems();
+</script>
 </body>
 </html>
