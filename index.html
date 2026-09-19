@@ -94,9 +94,13 @@
   .detail-label { color: #666; }
   .detail-value { color: #e8e8e8; text-align: right; font-weight: 700; word-break: break-all; }
 
+  /* Discount Price Box Style */
   .price-box { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px; background: #131313; border: 1px solid #202020; border-radius: 10px; margin-bottom: 10px; }
   .price-label { color: #5d5d5d; font-size: 9px; font-weight: 800; }
-  .price-value { color: var(--green-light); font-size: 19px; font-weight: 900; }
+  .price-values-wrapper { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .price-value { color: var(--green-light); font-size: 18px; font-weight: 900; }
+  .old-price { color: #777; font-size: 12px; font-weight: bold; text-decoration: line-through; }
+  .save-badge { background: rgba(0,213,100,0.12); border: 1px solid rgba(0,213,100,0.3); color: var(--green-light); padding: 3px 7px; border-radius: 999px; font-size: 9px; font-weight: 900; }
   
   .buy-btn { display: flex; justify-content: center; align-items: center; width: 100%; padding: 12px; border-radius: 9px; background: var(--green); color: #000; border: none; font-size: 11px; font-weight: 900; cursor: pointer; text-decoration: none; transition: 0.2s; }
   .buy-btn:hover { background: var(--green-light); }
@@ -283,7 +287,7 @@
         <br>Transactions are handled through Facebook or On-Site Checkout.
       </div>
       <div class="facebook-buttons">
-        <a href="https://www.facebook.com/mark.bnsacc1/" target="_blank" rel="noopener noreferrer" class="facebook-btn">📱 MAIN FACEBOOK</a>
+        <a href="https://www.facebook.com/mark.bnsacc1" target="_blank" rel="noopener noreferrer" class="facebook-btn">📱 MAIN FACEBOOK</a>
         <a href="https://www.facebook.com/mark.bnsacc" target="_blank" rel="noopener noreferrer" class="facebook-btn">📱 SECOND FACEBOOK</a>
       </div>
       <div>
@@ -297,7 +301,7 @@
   </div>
 </div>
 
-<a href="https://www.facebook.com/mark.bnsacc1/" target="_blank" rel="noopener noreferrer" class="floating-messenger" title="Message us on Facebook!">💬</a>
+<a href="https://www.facebook.com/mark.bnsacc1" target="_blank" rel="noopener noreferrer" class="floating-messenger" title="Message us on Facebook!">💬</a>
 
 <div id="checkoutModal" class="modal-overlay">
   <div class="modal-box" style="max-width: 500px;">
@@ -332,9 +336,9 @@
     </div>
 
     <div id="modeFb" style="display: none;">
-      <div class="step-list">
-        <div class="step-item"><b>Step 1:</b> Copy the <b>Item ID</b> above.</div>
-        <div class="step-item"><b>Step 2:</b> Message me on Facebook and send the ID of the item you want to buy.</div>
+      <div class="step-list" style="color: #bbb; font-size: 12px; line-height: 1.6; padding: 10px 0;">
+        <div class="step-item" style="margin-bottom: 8px;"><b>Step 1:</b> Copy the <b>Item ID</b> above.</div>
+        <div class="step-item"><b>Step 2:</b> Message me on Facebook (<a href="https://www.facebook.com/mark.bnsacc1" target="_blank" style="color: #00d564; text-decoration: underline;">Main FB</a> or <a href="https://www.facebook.com/mark.bnsacc" target="_blank" style="color: #00d564; text-decoration: underline;">Second FB</a>) and send the ID of the item you want to buy.</div>
       </div>
     </div>
 
@@ -407,6 +411,13 @@
     document.getElementById('visitorCount').textContent = count.toLocaleString();
   }
 
+  function updateLiveClock() {
+    const now = new Date();
+    const timeString = now.toTimeString().split(' ')[0];
+    const updateTimeEl = document.getElementById('updateTime');
+    if(updateTimeEl) updateTimeEl.textContent = timeString;
+  }
+
   function openCheckoutModal(itemId, price, game) {
     selectedCheckoutItem = { id: itemId, price: price, game: game };
     document.getElementById("checkoutItemId").textContent = itemId;
@@ -419,6 +430,28 @@
   }
 
   function closeCheckoutModal() { document.getElementById("checkoutModal").style.display = "none"; }
+
+  function switchCheckoutMode(mode) {
+    const tabOnSite = document.getElementById("tabOnSite");
+    const tabFb = document.getElementById("tabFb");
+    const modeOnSite = document.getElementById("modeOnSite");
+    const modeFb = document.getElementById("modeFb");
+    const successView = document.getElementById("orderSuccessView");
+
+    successView.style.display = "none";
+
+    if (mode === 'onsite') {
+      tabOnSite.classList.add("active");
+      tabFb.classList.remove("active");
+      modeOnSite.style.display = "block";
+      modeFb.style.display = "none";
+    } else {
+      tabFb.classList.add("active");
+      tabOnSite.classList.remove("active");
+      modeFb.style.display = "block";
+      modeOnSite.style.display = "none";
+    }
+  }
 
   function openImageModal(url) {
     const modal = document.getElementById("imageModal");
@@ -495,7 +528,6 @@
     return sorted;
   }
 
-  /* Live Search Auto-Complete Functions */
   function handleSearchInput() {
     const input = document.getElementById("searchInput");
     const val = input.value.trim().toLowerCase();
@@ -589,7 +621,24 @@
     const typeBadge = `<span class="type-badge">${escapeHTML(account.listing_type || 'Account')}</span>`;
     const safeGame = escapeHTML(account.game || "Unknown Game");
     const safeId = escapeHTML(account.id || "N/A");
-    const safePrice = escapeHTML(formatPrice(account.price));
+    
+    // Pagsusuri para sa Discount Price (Kung mayroong old_price o original_price sa database)
+    const currentPriceNum = getPriceNumber(account.price);
+    const oldPriceNum = getPriceNumber(account.old_price || account.original_price);
+    
+    let priceHtml = "";
+    if(oldPriceNum > currentPriceNum) {
+      const savedAmount = oldPriceNum - currentPriceNum;
+      priceHtml = `
+        <div class="price-values-wrapper">
+          <span class="old-price">${escapeHTML(formatPrice(oldPriceNum))}</span>
+          <span class="price-value">${escapeHTML(formatPrice(currentPriceNum))}</span>
+          <span class="save-badge">Save ${escapeHTML(formatPrice(savedAmount))}</span>
+        </div>
+      `;
+    } else {
+      priceHtml = `<span class="price-value">${escapeHTML(formatPrice(account.price))}</span>`;
+    }
 
     const imageHtml = account.image_url ? `
       <div style="margin-bottom: 12px; border-radius: 8px; overflow: hidden; height: 140px; background: #151515;" class="clickable-thumb" onclick="openImageModal('${escapeHTML(account.image_url)}')">
@@ -611,9 +660,9 @@
         <div class="details-box">${details}</div>
         <div class="price-box">
           <span class="price-label">PRICE</span>
-          <span class="price-value">${safePrice}</span>
+          ${priceHtml}
         </div>
-        <button class="buy-btn" onclick="openCheckoutModal('${safeId}', '${safePrice}', '${safeGame}')">🛒 BUY NOW</button>
+        <button class="buy-btn" onclick="openCheckoutModal('${safeId}', '${escapeHTML(formatPrice(account.price))}', '${safeGame}')">🛒 BUY NOW</button>
       </div>
     `;
   }
@@ -713,10 +762,10 @@
       accounts = data.filter(acc => String(acc.status).toLowerCase() === "available");
       updateCategoryCounts();
       applyFilters();
+      updateLiveClock();
     }
   }
 
-  // Awtomatikong kukuha at magpapakita ng 4 na pinakabagong approved vouches
   async function loadLatestVouches() {
     const vouchesGrid = document.getElementById("vouchesGrid");
     try {
@@ -758,6 +807,15 @@
   loadUserBanner();
   checkShopAvailability();
   setupVisitorCounter();
+
+  // Oras bawat segundo
+  setInterval(updateLiveClock, 1000);
+
+  // Auto-refresh ng inventory bawat 1 minuto
+  setInterval(() => {
+    loadAccounts();
+    loadLatestVouches();
+  }, 60000);
 </script>
 </body>
 </html>
