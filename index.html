@@ -402,7 +402,7 @@
   }
 
   function setupVisitorCounter() {
-    let count = parseInt(localStorage.getItem('site_visitor_count') || '1240');
+    let count = parseInt(localStorage.getItem('site_visitor_count') || '0');
     if (!sessionStorage.getItem('has_counted')) {
       count++;
       localStorage.setItem('site_visitor_count', count);
