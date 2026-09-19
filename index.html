@@ -160,7 +160,7 @@
   .vouch-feedback { font-size: 11px; color: #aaa; line-height: 1.5; margin-bottom: 8px; }
   .vouch-game { font-size: 8px; color: #666; text-transform: uppercase; font-weight: bold; }
 
-  /* Style para sa Image Preview Modal */
+  /* Image Preview Modal Style */
   .img-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 20px; }
   .img-modal-box { position: relative; max-width: 90%; max-height: 90%; text-align: center; }
   .img-modal-box img { max-width: 100%; max-height: 85vh; border-radius: 10px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.8); object-fit: contain; }
@@ -314,8 +314,8 @@
       <div class="vouches-title">💬 CUSTOMER VOUCHES & REVIEWS</div>
       <div class="vouch-action-btns">
         <a href="sold.html" class="write-vouch-btn" style="background:#222; color:#e89a24; border-color:#332200;">📦 SOLD HISTORY</a>
-        <a href="reviews.html" class="write-vouch-btn" style="background:#222; color:#fff;">📁 TINGNAN LAHAT</a>
-        <a href="vouch.html" class="write-vouch-btn">✍️ MAG-VOUCH</a>
+        <a href="reviews.html" class="write-vouch-btn" style="background:#222; color:#fff;">📁 VIEW ALL</a>
+        <a href="vouch.html" class="write-vouch-btn">✍️ WRITE A VOUCH</a>
       </div>
     </div>
     <div id="vouchesGrid" class="vouches-grid">
@@ -356,14 +356,14 @@
     <div class="modal-subtitle">Item ID: <b id="modalItemId" style="color:#fff;">---</b></div>
     
     <div class="step-list">
-      <div class="step-item"><b>Step 1:</b> Kopyahin ang <b>Item / Account ID</b> sa itaas gamit ang copy button.</div>
-      <div class="step-item"><b>Step 2:</b> I-pm ako sa Facebook at i-send ang ID ng item na bibilhin mo.</div>
-      <div class="step-item"><b>Step 3:</b> Piliin ang transaction method: <b>Payment First</b> (GCash o MariBank) o gumamit ng kilalang <b>Trusted Middleman (MM)</b> (sagot mo ang fee).</div>
-      <div class="step-item"><b>Step 4:</b> Matapos ang payment, ibibigay ko agad ang mga detalye ng account o i-trade ang item sa laro!</div>
+      <div class="step-item"><b>Step 1:</b> Copy the <b>Item / Account ID</b> above using the copy button.</div>
+      <div class="step-item"><b>Step 2:</b> Message me on Facebook and send the ID of the item you want to buy.</div>
+      <div class="step-item"><b>Step 3:</b> Choose your transaction method: <b>Payment First</b> (GCash or MariBank) or use a well-known <b>Trusted Middleman (MM)</b> (fee is on you).</div>
+      <div class="step-item"><b>Step 4:</b> After payment, account details will be provided immediately or the item will be traded in-game!</div>
     </div>
 
     <div class="modal-fb-section">
-      <div class="modal-fb-label">Mag-message na sa Facebook:</div>
+      <div class="modal-fb-label">Message us on Facebook:</div>
       <div class="modal-fb-buttons">
         <a href="https://www.facebook.com/mark.bnsacc1/" target="_blank" rel="noopener noreferrer" class="modal-fb-btn main">💬 Main Facebook</a>
         <a href="https://www.facebook.com/mark.bnsacc" target="_blank" rel="modal-fb-btn">💬 2nd Facebook</a>
@@ -387,15 +387,15 @@
     <div class="modal-subtitle">Shop Guidelines & Refund Policy</div>
     
     <div class="step-list">
-      <div class="step-item"><b>1. Strict No Bogus Buyers:</b> Huwag mag-inquire kung walang pambayad o kung hindi seryoso sa transaksyon.</div>
-      <div class="step-item"><b>2. Secure Transactions:</b> Lahat ng transaksyon ay dumadaan sa aming opisyal na Facebook accounts o sa pamamagitan ng kilalang Trusted Middleman (MM).</div>
-      <div class="step-item"><b>3. 3-Day Refund Policy:</b> Nagbibigay kami ng hanggang <b>3 araw na warranty / refund</b> kung mapapatunayan mong ang biniling account ay na-retrieve o nawala nang hindi mo ginawa (kinakailangan ng sapat na ebidensya o video proof).</div>
-      <div class="step-item"><b>4. Finality:</b> Pagkatapos maibigay nang buo ang mga detalye at lumipas ang warranty period, ang bawat benta ay itinuturing nang pinal.</div>
+      <div class="step-item"><b>1. Strict No Bogus Buyers:</b> Do not inquire if you do not have payment ready or are not serious about the transaction.</div>
+      <div class="step-item"><b>2. Secure Transactions:</b> All transactions go through our official Facebook accounts or via a recognized Trusted Middleman (MM).</div>
+      <div class="step-item"><b>3. 3-Day Refund Policy:</b> We offer up to a <b>3-day warranty / refund</b> if you can prove that the purchased account was retrieved or lost through no fault of your own (adequate evidence or video proof is required).</div>
+      <div class="step-item"><b>4. Finality:</b> Once account details are fully delivered and the warranty period expires, all sales are considered final.</div>
     </div>
 
     <div class="modal-fb-section">
       <div class="modal-fb-buttons">
-        <button class="modal-fb-btn main" onclick="closeTosModal()">Naintindihan ko</button>
+        <button class="modal-fb-btn main" onclick="closeTosModal()">I Understand</button>
       </div>
     </div>
   </div>
@@ -422,7 +422,7 @@
 
   function loadUserBanner() {
     const bannerEl = document.getElementById("promoBanner");
-    const text = localStorage.getItem('site_announcement') || "🔥 100% Legit & Trusted Roblox Marketplace! Mag-ingat sa mga scammer.";
+    const text = localStorage.getItem('site_announcement') || "🔥 100% Legit & Trusted Roblox Marketplace! Beware of scammers.";
     if(bannerEl) bannerEl.textContent = text;
   }
 
@@ -691,7 +691,7 @@
 
   function updateLiveTime(){
     const element = document.getElementById("updateTime");
-    if(element) element.textContent = new Date().toLocaleTimeString("en-PH", {hour:"2-digit", minute:"2-digit", second:"2-digit", hour12:true});
+    if(element) element.textContent = new Date().toLocaleTimeString("en-US", {hour:"2-digit", minute:"2-digit", second:"2-digit", hour12:true});
   }
 
   function renderAccounts(){
@@ -878,7 +878,7 @@
       if(error) throw error;
 
       if(!data || data.length === 0){
-        grid.innerHTML = `<div style="grid-column: 1/-1; color: #666; font-size: 11px; text-align: center; padding: 15px;">Walang pang approved na customer reviews.</div>`;
+        grid.innerHTML = `<div style="grid-column: 1/-1; color: #666; font-size: 11px; text-align: center; padding: 15px;">No approved customer reviews yet.</div>`;
         return;
       }
 
