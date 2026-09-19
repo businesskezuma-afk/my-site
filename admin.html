@@ -125,8 +125,9 @@
 
   <!-- Add New Listing -->
   <div class="card">
-    <div class="section-title">Add New Listing</div>
+    <div class="section-title" id="formTitle">Add New Listing</div>
     <form id="addForm">
+      <input type="hidden" id="editOriginalId">
       <div class="form-grid">
         <div class="form-group">
           <label>Game Category</label>
@@ -145,8 +146,12 @@
           <input type="text" id="itemAccount" class="form-control" placeholder="Roblox Username or Title">
         </div>
         <div class="form-group">
-          <label>Price (PHP)</label>
+          <label>Current / Selling Price (PHP)</label>
           <input type="text" id="itemPrice" class="form-control" placeholder="e.g. 500" required>
+        </div>
+        <div class="form-group">
+          <label>Old / Original Price (PHP) [Optional for Discount]</label>
+          <input type="text" id="itemOldPrice" class="form-control" placeholder="e.g. 750 (Leave blank if no discount)">
         </div>
         <div class="form-group">
           <label>Listing Type</label>
@@ -202,7 +207,10 @@
         </div>
       </div>
 
-      <button type="submit" class="btn primary" id="publishBtn" style="margin-top: 10px;">PUBLISH LISTING</button>
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button type="submit" class="btn primary" id="publishBtn">PUBLISH LISTING</button>
+        <button type="button" class="btn" id="cancelEditBtn" style="display:none;" onclick="resetForm()">Cancel Edit</button>
+      </div>
     </form>
   </div>
 
@@ -238,7 +246,7 @@
             <th>ID</th>
             <th>Game</th>
             <th>Type</th>
-            <th>Price</th>
+            <th>Price / Discount</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
@@ -358,7 +366,6 @@
       let badgeClass = 'status-pending';
       let displayStatus = 'PROCESSING';
       
-      // I-format ang status para maiwasan ang casing issues sa Supabase
       if (dbStatus === 'completed') {
         displayStatus = 'COMPLETED';
         badgeClass = 'status-completed';
@@ -370,7 +377,6 @@
         badgeClass = 'status-pending';
       }
 
-      // Nagpakita na ang dalawang button: Complete (kaliwa) at Cancel (kanan)
       const actionButtons = (dbStatus !== 'completed' && dbStatus !== 'cancelled') 
         ? `<button class="btn primary" style="padding: 4px 8px; font-size: 10px; position: relative; z-index: 10;" onclick="updateOrderStatus('${escapeHTML(o.order_id)}', 'Completed')">Complete</button>
            <button class="btn danger" style="padding: 4px 8px; font-size: 10px; position: relative; z-index: 10; margin-left: 5px;" onclick="updateOrderStatus('${escapeHTML(o.order_id)}', 'Cancelled')">Cancel</button>` 
@@ -427,9 +433,13 @@
           <td><b>${escapeHTML(item.id)}</b></td>
           <td>${escapeHTML(item.game)}</td>
           <td>${escapeHTML(item.listing_type || 'Account')}</td>
-          <td>₱${escapeHTML(item.price)}</td>
+          <td>
+            ₱${escapeHTML(item.price)}
+            ${item.old_price ? `<br><span style="text-decoration: line-through; color: #777; font-size: 10px;">₱${escapeHTML(item.old_price)}</span>` : ''}
+          </td>
           <td><span class="status-badge ${item.status === 'Available' ? 'status-available' : 'status-sold'}">${escapeHTML(item.status)}</span></td>
           <td>
+            <button class="btn" style="padding: 5px 8px; font-size: 10px; position: relative; z-index: 10;" onclick='editItem(${JSON.stringify(item)})'>Edit / Discount</button>
             <button class="btn" style="padding: 5px 8px; font-size: 10px; position: relative; z-index: 10;" onclick="toggleStatus('${item.id}', '${item.status}')">${item.status === 'Available' ? 'Mark Sold' : 'Mark Available'}</button>
             <button class="btn danger" style="padding: 5px 8px; font-size: 10px; position: relative; z-index: 10;" onclick="deleteItem('${item.id}')">Delete</button>
           </td>
@@ -475,7 +485,9 @@
   document.getElementById('addForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const publishBtn = document.getElementById('publishBtn');
-    publishBtn.textContent = "UPLOADING...";
+    const editOriginalId = document.getElementById('editOriginalId').value;
+    
+    publishBtn.textContent = editOriginalId ? "UPDATING..." : "UPLOADING...";
     publishBtn.disabled = true;
 
     try {
@@ -507,11 +519,15 @@
         game: game,
         listing_type: document.getElementById('itemType').value,
         price: document.getElementById('itemPrice').value.trim(),
+        old_price: document.getElementById('itemOldPrice').value.trim() || null,
         account: document.getElementById('itemAccount').value.trim(),
-        image_url: imageUrl,
         status: 'Available',
         date_added: new Date().toISOString().split('T')[0]
       };
+
+      if(imageUrl) {
+        newItem.image_url = imageUrl;
+      }
 
       if (game === 'Blox Fruits') {
         newItem.level = document.getElementById('bfLevel').value.trim();
@@ -532,12 +548,20 @@
         newItem.speed = document.getElementById('eggSpeed').value.trim();
       }
 
-      const { error } = await supabaseClient.from('accounts').insert([newItem]);
-      if(error) throw error;
+      if(editOriginalId) {
+        if(editOriginalId !== newItem.id) {
+          await supabaseClient.from('accounts').delete().eq('id', editOriginalId);
+        }
+        const { error } = await supabaseClient.from('accounts').upsert([newItem]);
+        if(error) throw error;
+        alert('Listing and discount updated successfully!');
+      } else {
+        const { error } = await supabaseClient.from('accounts').insert([newItem]);
+        if(error) throw error;
+        alert('Listing added successfully!');
+      }
 
-      alert('Listing added successfully!');
-      document.getElementById('addForm').reset();
-      toggleGameFields();
+      resetForm();
       loadInventoryAdmin();
     } catch(err) {
       alert('Error: ' + err.message);
@@ -546,6 +570,51 @@
       publishBtn.disabled = false;
     }
   });
+
+  function editItem(item) {
+    document.getElementById('editOriginalId').value = item.id;
+    document.getElementById('itemId').value = item.id;
+    document.getElementById('itemGame').value = item.game;
+    document.getElementById('itemType').value = item.listing_type || 'Account';
+    document.getElementById('itemPrice').value = item.price;
+    document.getElementById('itemOldPrice').value = item.old_price || '';
+    document.getElementById('itemAccount').value = item.account || '';
+
+    document.getElementById('formTitle').textContent = `Edit Listing / Control Discount (${item.id})`;
+    document.getElementById('publishBtn').textContent = 'UPDATE LISTING';
+    document.getElementById('cancelEditBtn').style.display = 'inline-block';
+
+    if (item.game === 'Blox Fruits') {
+      document.getElementById('bfLevel').value = item.level || '';
+      document.getElementById('bfBounty').value = item.bounty || '';
+      document.getElementById('bfFruit').value = item.fruit || '';
+      document.getElementById('bfFightingStyle').value = item.fightingStyle || '';
+      document.getElementById('bfRace').value = item.race || '';
+      document.getElementById('bfPermFruit').value = item.permanentFruit || '';
+      document.getElementById('bfGamepass').value = item.gamepass || '';
+    } else if (item.game === 'Steal A Brainrot') {
+      document.getElementById('brMoney').value = item.money || '';
+      document.getElementById('brSteals').value = item.steals || '';
+      document.getElementById('brRebirth').value = item.rebirth || '';
+      document.getElementById('brAdminPanel').value = item.adminPanel || 'false';
+    } else if (item.game === 'Steal An Egg') {
+      document.getElementById('eggMoney').value = item.money || '';
+      document.getElementById('eggMoneySec').value = item.moneyPerSecond || '';
+      document.getElementById('eggSpeed').value = item.speed || '';
+    }
+
+    toggleGameFields();
+    window.scrollTo({ top: document.getElementById('addForm').offsetTop - 50, behavior: 'smooth' });
+  }
+
+  function resetForm() {
+    document.getElementById('addForm').reset();
+    document.getElementById('editOriginalId').value = '';
+    document.getElementById('formTitle').textContent = 'Add New Listing';
+    document.getElementById('publishBtn').textContent = 'PUBLISH LISTING';
+    document.getElementById('cancelEditBtn').style.display = 'none';
+    toggleGameFields();
+  }
 
   async function toggleStatus(id, currentStatus) {
     const newStatus = currentStatus === 'Available' ? 'Sold' : 'Available';
