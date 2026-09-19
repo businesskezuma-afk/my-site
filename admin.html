@@ -123,11 +123,12 @@
     </div>
   </div>
 
-  <!-- Add New Listing -->
+  <!-- Add New Listing / Edit Listing -->
   <div class="card">
     <div class="section-title" id="formTitle">Add New Listing</div>
     <form id="addForm">
       <input type="hidden" id="editOriginalId">
+      <input type="hidden" id="existingImageUrl">
       <div class="form-grid">
         <div class="form-group">
           <label>Game Category</label>
@@ -493,7 +494,7 @@
     try {
       const game = document.getElementById('itemGame').value;
       const fileInput = document.getElementById('itemImageFile');
-      let imageUrl = "";
+      let imageUrl = document.getElementById('existingImageUrl').value;
 
       if (fileInput.files && fileInput.files[0]) {
         const file = fileInput.files[0];
@@ -521,12 +522,9 @@
         price: document.getElementById('itemPrice').value.trim(),
         old_price: document.getElementById('itemOldPrice').value.trim() || null,
         account: document.getElementById('itemAccount').value.trim(),
+        image_url: imageUrl,
         status: 'Available'
       };
-
-      if(imageUrl) {
-        newItem.image_url = imageUrl;
-      }
 
       if (game === 'Blox Fruits') {
         newItem.level = document.getElementById('bfLevel').value.trim();
@@ -578,29 +576,29 @@
     document.getElementById('itemPrice').value = item.price;
     document.getElementById('itemOldPrice').value = item.old_price || '';
     document.getElementById('itemAccount').value = item.account || '';
+    document.getElementById('existingImageUrl').value = item.image_url || '';
+
+    // I-populate ang specific game fields para hindi mawala ang mga detalye
+    document.getElementById('bfLevel').value = item.level || '';
+    document.getElementById('bfBounty').value = item.bounty || '';
+    document.getElementById('bfFruit').value = item.fruit || '';
+    document.getElementById('bfFightingStyle').value = item.fightingStyle || '';
+    document.getElementById('bfRace').value = item.race || '';
+    document.getElementById('bfPermFruit').value = item.permanentFruit || '';
+    document.getElementById('bfGamepass').value = item.gamepass || '';
+
+    document.getElementById('brMoney').value = item.money || '';
+    document.getElementById('brSteals').value = item.steals || '';
+    document.getElementById('brRebirth').value = item.rebirth || '';
+    document.getElementById('brAdminPanel').value = item.adminPanel || 'false';
+
+    document.getElementById('eggMoney').value = item.money || '';
+    document.getElementById('eggMoneySec').value = item.moneyPerSecond || '';
+    document.getElementById('eggSpeed').value = item.speed || '';
 
     document.getElementById('formTitle').textContent = `Edit Listing / Control Discount (${item.id})`;
     document.getElementById('publishBtn').textContent = 'UPDATE LISTING';
     document.getElementById('cancelEditBtn').style.display = 'inline-block';
-
-    if (item.game === 'Blox Fruits') {
-      document.getElementById('bfLevel').value = item.level || '';
-      document.getElementById('bfBounty').value = item.bounty || '';
-      document.getElementById('bfFruit').value = item.fruit || '';
-      document.getElementById('bfFightingStyle').value = item.fightingStyle || '';
-      document.getElementById('bfRace').value = item.race || '';
-      document.getElementById('bfPermFruit').value = item.permanentFruit || '';
-      document.getElementById('bfGamepass').value = item.gamepass || '';
-    } else if (item.game === 'Steal A Brainrot') {
-      document.getElementById('brMoney').value = item.money || '';
-      document.getElementById('brSteals').value = item.steals || '';
-      document.getElementById('brRebirth').value = item.rebirth || '';
-      document.getElementById('brAdminPanel').value = item.adminPanel || 'false';
-    } else if (item.game === 'Steal An Egg') {
-      document.getElementById('eggMoney').value = item.money || '';
-      document.getElementById('eggMoneySec').value = item.moneyPerSecond || '';
-      document.getElementById('eggSpeed').value = item.speed || '';
-    }
 
     toggleGameFields();
     window.scrollTo({ top: document.getElementById('addForm').offsetTop - 50, behavior: 'smooth' });
@@ -609,6 +607,7 @@
   function resetForm() {
     document.getElementById('addForm').reset();
     document.getElementById('editOriginalId').value = '';
+    document.getElementById('existingImageUrl').value = '';
     document.getElementById('formTitle').textContent = 'Add New Listing';
     document.getElementById('publishBtn').textContent = 'PUBLISH LISTING';
     document.getElementById('cancelEditBtn').style.display = 'none';
