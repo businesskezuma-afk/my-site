@@ -3,63 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sold Items History - Roblox Marketplace</title>
+<title>Sold History - Roblox Marketplace</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff0033' font-family='Arial, sans-serif' font-weight='900' font-size='75'>K</text></svg>">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-  body { background: #090909; color: #f5f5f5; min-height: 100vh; padding: 40px 20px; animation: fadeIn 0.4s ease-in-out; }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  body { background: #090909; color: #f5f5f5; min-height: 100vh; padding: 30px 20px; }
+  .container { max-width: 1000px; margin: 0 auto; }
+  .header { text-align: center; margin-bottom: 30px; }
+  .header h1 { color: #e89a24; font-size: 26px; font-weight: 900; margin-bottom: 5px; }
+  .header p { color: #8b8b8b; font-size: 12px; }
   
-  .container { max-width: 1100px; margin: 0 auto; background: #101010; border: 1px solid #202020; border-radius: 14px; padding: 30px; }
-  .header { text-align: center; margin-bottom: 25px; border-bottom: 1px solid #202020; padding-bottom: 15px; }
-  .header h1 { color: #00d564; font-size: 24px; font-weight: 900; }
-  .header p { color: #8b8b8b; font-size: 12px; margin-top: 5px; }
-  
-  .back-link { display: inline-block; color: #00d564; text-decoration: none; font-size: 12px; font-weight: bold; margin-bottom: 20px; transition: 0.2s; }
+  .back-link { display: inline-block; margin-bottom: 20px; color: #00d564; font-size: 12px; text-decoration: none; font-weight: bold; }
   .back-link:hover { text-decoration: underline; }
 
-  .account-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-  .account-card { background: #141414; border: 1px solid #222; border-radius: 12px; padding: 15px; opacity: 0.85; transition: 0.2s; }
-  .account-card:hover { opacity: 1; border-color: #333; }
-  
-  .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-  .game-badge { padding: 4px 8px; background: #181818; border: 1px solid #252525; border-radius: 999px; color: #888; font-size: 9px; font-weight: 800; text-transform: uppercase; }
-  .sold-badge { padding: 4px 8px; background: rgba(232,154,36,0.1); border: 1px solid rgba(232,154,36,0.3); color: #e89a24; border-radius: 999px; font-size: 8px; font-weight: 900; }
-  
-  .account-id { font-size: 14px; font-weight: 900; color: #fff; margin-bottom: 8px; }
-  .details-box { margin-bottom: 10px; }
-  .detail-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #1a1a1a; font-size: 11px; }
-  .detail-label { color: #666; }
-  .detail-value { color: #bbb; font-weight: 700; }
-
-  .price-box { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #111; border-radius: 8px; font-size: 12px; }
-  .price-label { color: #555; font-size: 9px; font-weight: bold; }
-  .price-value { color: #e89a24; font-weight: 900; font-size: 15px; }
-
-  .pagination-container { display: flex; justify-content: center; align-items: center; gap: 5px; margin-top: 25px; flex-wrap: wrap; }
-  .page-btn { padding: 6px 12px; background: #181818; border: 1px solid #292929; color: #aaa; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-  .page-btn:hover { background: #252525; color: #fff; }
-  .page-btn.active { background: #00d564; color: #000; border-color: #00d564; }
-  .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  @media(max-width: 900px) { .account-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media(max-width: 600px) { .account-grid { grid-template-columns: 1fr; } }
+  .sold-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+  .sold-card { background: #101010; border: 1px solid #252010; border-radius: 12px; padding: 18px; position: relative; }
+  .sold-badge { display: inline-block; padding: 4px 8px; background: rgba(232,154,36,0.1); border: 1px solid rgba(232,154,36,0.3); color: #e89a24; font-size: 9px; font-weight: 900; border-radius: 999px; margin-bottom: 10px; text-transform: uppercase; }
+  .sold-id { font-size: 15px; font-weight: 900; color: #fff; margin-bottom: 8px; }
+  .sold-details { font-size: 11px; color: #999; margin-bottom: 10px; }
+  .sold-price { font-size: 14px; font-weight: 900; color: #e89a24; }
+  .spinner { width: 24px; height: 24px; border: 3px solid rgba(232,154,36,0.2); border-top-color: #e89a24; border-radius: 50%; animation: spin 0.6s linear infinite; margin: 40px auto; }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <a href="index.html" class="back-link">← Bumalik sa Marketplace</a>
+  <a href="index.html" class="back-link">← Back to Marketplace</a>
   <div class="header">
     <h1>SOLD ITEMS & ACCOUNTS HISTORY</h1>
-    <p>Mga patunay ng mga matagumpay at naibenta nang items sa aming shop</p>
+    <p>List of previously sold items and accounts.</p>
   </div>
 
-  <div id="soldGrid" class="account-grid">
-    <div style="grid-column: 1/-1; text-align: center; color: #666; padding: 30px;">Loading sold history...</div>
+  <div id="soldGrid" class="sold-grid">
+    <div style="grid-column: 1/-1; text-align: center;"><div class="spinner"></div></div>
   </div>
-
-  <div id="soldPagination" class="pagination-container"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -69,93 +47,44 @@
   const supabaseKey = 'sb_publishable_qWOJctjWQouOqSzjek73pw_FYz7MbyS';
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-  let soldItems = [];
-  let currentSoldPage = 1;
-  const ITEMS_PER_PAGE = 6;
-
-  async function loadSoldItems() {
-    const { data, error } = await supabaseClient.from('accounts').select('*').ilike('status', 'Sold').order('dateAdded', { ascending: false });
-    if(error) {
-      document.getElementById('soldGrid').innerHTML = `<div style="color:red; text-align:center; grid-column:1/-1;">Error loading sold items</div>`;
-      return;
-    }
-    soldItems = data || [];
-    renderSoldPage();
+  function escapeHTML(value){
+    return String(value ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
   }
 
   function formatPrice(price){
-    if(price === undefined || price === null || String(price).trim() === "") return "₱0";
+    if(!price) return "₱0";
     let value = String(price).trim().replace(/₱/g,"").replace(/,/g,"");
     const number = parseFloat(value.replace(/[^0-9.-]/g, ""));
     if(isNaN(number)) return "₱" + String(price).trim();
     return "₱" + number.toLocaleString("en-PH");
   }
 
-  function renderSoldPage() {
+  async function loadSoldHistory() {
     const grid = document.getElementById('soldGrid');
-    const pagination = document.getElementById('soldPagination');
+    try {
+      const { data, error } = await supabaseClient.from('accounts').select('*').ilike('status', 'Sold');
+      if(error) throw error;
 
-    if(soldItems.length === 0) {
-      grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #666; padding: 30px;">Wala pang naitalang sold items.</div>`;
-      pagination.innerHTML = "";
-      return;
-    }
-
-    const totalPages = Math.ceil(soldItems.length / ITEMS_PER_PAGE);
-    if(currentSoldPage > totalPages) currentSoldPage = totalPages;
-    if(currentSoldPage < 1) currentSoldPage = 1;
-
-    const startIdx = (currentSoldPage - 1) * ITEMS_PER_PAGE;
-    const pageItems = soldItems.slice(startIdx, startIdx + ITEMS_PER_PAGE);
-
-    grid.innerHTML = pageItems.map(acc => `
-      <div class="account-card">
-        <div class="card-top">
-          <span class="game-badge">${escapeHTML(acc.game)}</span>
-          <span class="sold-badge">SOLD OUT</span>
-        </div>
-        <div class="account-id">ID: ${escapeHTML(acc.id)}</div>
-        <div class="details-box">
-          <div class="detail-row"><span class="detail-label">Type</span><span class="detail-value">${escapeHTML(acc.listing_type || 'Account')}</span></div>
-          <div class="detail-row"><span class="detail-label">Title/User</span><span class="detail-value">${escapeHTML(acc.account)}</span></div>
-          <div class="detail-row"><span class="detail-label">Date Sold</span><span class="detail-value">${escapeHTML(acc.dateAdded || 'N/A')}</span></div>
-        </div>
-        <div class="price-box">
-          <span class="price-label">SOLD PRICE</span>
-          <span class="price-value">${escapeHTML(formatPrice(acc.price))}</span>
-        </div>
-      </div>
-    `).join('');
-
-    let paginationHTML = `
-      <button class="page-btn" onclick="changeSoldPage(1)" ${currentSoldPage === 1 ? 'disabled' : ''}>First</button>
-      <button class="page-btn" onclick="changeSoldPage(${currentSoldPage - 1})" ${currentSoldPage === 1 ? 'disabled' : ''}>Prev</button>
-    `;
-
-    for (let i = 1; i <= totalPages; i++) {
-      if (i === 1 || i === totalPages || (i >= currentSoldPage - 2 && i <= currentSoldPage + 2)) {
-        paginationHTML += `<button class="page-btn ${i === currentSoldPage ? 'active' : ''}" onclick="changeSoldPage(${i})">${i}</button>`;
+      if(!data || data.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #666; font-size: 12px; padding: 40px;">No sold history records found yet.</div>`;
+        return;
       }
+
+      grid.innerHTML = data.map(item => `
+        <div class="sold-card">
+          <span class="sold-badge">📦 SOLD ITEM</span>
+          <div class="sold-id">${escapeHTML(item.id)}</div>
+          <div class="sold-details">Game: <b>${escapeHTML(item.game)}</b><br>Type: ${escapeHTML(item.listing_type || 'Account')}</div>
+          <div class="sold-price">${escapeHTML(formatPrice(item.price))}</div>
+        </div>
+      `).join('');
+    } catch(err) {
+      console.error(err);
+      grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #ff5f56; font-size: 12px;">Failed to load sold history.</div>`;
     }
-
-    paginationHTML += `
-      <button class="page-btn" onclick="changeSoldPage(${currentSoldPage + 1})" ${currentSoldPage === totalPages ? 'disabled' : ''}>Next</button>
-      <button class="page-btn" onclick="changeSoldPage(${totalPages})" ${currentSoldPage === totalPages ? 'disabled' : ''}>Last</button>
-    `;
-
-    pagination.innerHTML = paginationHTML;
   }
 
-  function changeSoldPage(page) {
-    currentSoldPage = page;
-    renderSoldPage();
-  }
-
-  function escapeHTML(value){
-    return String(value ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
-  }
-
-  loadSoldItems();
+  loadSoldHistory();
 </script>
 
 </body>

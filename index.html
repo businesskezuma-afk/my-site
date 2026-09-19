@@ -3,8 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Roblox Marketplace</title>
+<title>Roblox Marketplace - Trusted Accounts & Items</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff0033' font-family='Arial, sans-serif' font-weight='900' font-size='75'>K</text></svg>">
+
+<!-- Open Graph / Facebook Meta Tags -->
+<meta property="og:title" content="Roblox Marketplace - Trusted Accounts & Items">
+<meta property="og:description" content="Find available Roblox accounts and items quickly and easily. 100% Legit & Trusted!">
+<meta property="og:image" content="https://imgur.com/a/BC7lN0I">
+<meta property="og:url" content="https://kezrblx.vercel.app">
+<meta property="og:type" content="website">
+
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -169,6 +177,17 @@
   .clickable-thumb { cursor: pointer; transition: 0.2s; }
   .clickable-thumb:hover { opacity: 0.85; transform: scale(1.02); }
 
+  /* Checkout Modal Styles */
+  .checkout-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+  .checkout-tab-btn { flex: 1; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: #888; font-size: 11px; font-weight: 900; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+  .checkout-tab-btn.active { background: var(--green); color: #000; border-color: var(--green); }
+  .checkout-form-group { margin-bottom: 12px; }
+  .checkout-form-group label { display: block; margin-bottom: 5px; font-size: 10px; color: #aaa; font-weight: bold; text-transform: uppercase; }
+  .checkout-input { width: 100%; padding: 11px; background: #141414; border: 1px solid #292929; border-radius: 8px; color: #fff; font-size: 13px; outline: none; }
+  .checkout-input:focus { border-color: #00d564; }
+  .success-order-box { text-align: center; padding: 20px 0; }
+  .order-id-highlight { font-size: 18px; color: var(--green-light); font-weight: 900; background: #151515; padding: 10px; border-radius: 8px; margin: 15px 0; border: 1px dashed var(--green); word-break: break-all; }
+
   .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
   .modal-box { background: #141414; border: 1px solid #282828; border-radius: 14px; max-width: 480px; width: 100%; padding: 25px; position: relative; box-shadow: 0 15px 40px rgba(0,0,0,0.6); }
   .modal-close { position: absolute; right: 15px; top: 15px; background: #222; border: none; color: #aaa; width: 30px; height: 30px; border-radius: 50%; font-size: 16px; cursor: pointer; font-weight: bold; transition: 0.2s; }
@@ -328,7 +347,7 @@
       <div class="important-title">⚠️ IMPORTANT</div>
       <div class="important-text">
         Please confirm the account, item, price, payment method, and transaction details before making any payment.
-        <br>Transactions are handled through Facebook.
+        <br>Transactions are handled through Facebook or On-Site Checkout.
       </div>
       <div class="facebook-buttons">
         <a href="https://www.facebook.com/mark.bnsacc1/" target="_blank" rel="noopener noreferrer" class="facebook-btn">📱 MAIN FACEBOOK</a>
@@ -349,25 +368,63 @@
   💬
 </a>
 
-<div id="buyModal" class="modal-overlay">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeBuyModal()">×</button>
-    <div class="modal-title">How to Buy</div>
-    <div class="modal-subtitle">Item ID: <b id="modalItemId" style="color:#fff;">---</b></div>
+<!-- Checkout Modal with Dual Options (On-Site & Facebook) -->
+<div id="checkoutModal" class="modal-overlay">
+  <div class="modal-box" style="max-width: 500px;">
+    <button class="modal-close" onclick="closeCheckoutModal()">×</button>
+    <div class="modal-title">Complete Your Order</div>
+    <div class="modal-subtitle">Item ID: <b id="checkoutItemId" style="color:#fff;">---</b> | Price: <b id="checkoutItemPrice" style="color:#00d564;">---</b></div>
     
-    <div class="step-list">
-      <div class="step-item"><b>Step 1:</b> Copy the <b>Item / Account ID</b> above using the copy button.</div>
-      <div class="step-item"><b>Step 2:</b> Message me on Facebook and send the ID of the item you want to buy.</div>
-      <div class="step-item"><b>Step 3:</b> Choose your transaction method: <b>Payment First</b> (GCash or MariBank) or use a well-known <b>Trusted Middleman (MM)</b> (fee is on you).</div>
-      <div class="step-item"><b>Step 4:</b> After payment, account details will be provided immediately or the item will be traded in-game!</div>
+    <div class="checkout-tabs">
+      <button class="checkout-tab-btn active" id="tabOnSite" onclick="switchCheckoutMode('onsite')">🛒 On-Site Checkout</button>
+      <button class="checkout-tab-btn" id="tabFb" onclick="switchCheckoutMode('fb')">💬 Order via Facebook</button>
     </div>
 
-    <div class="modal-fb-section">
-      <div class="modal-fb-label">Message us on Facebook:</div>
-      <div class="modal-fb-buttons">
-        <a href="https://www.facebook.com/mark.bnsacc1/" target="_blank" rel="noopener noreferrer" class="modal-fb-btn main">💬 Main Facebook</a>
-        <a href="https://www.facebook.com/mark.bnsacc" target="_blank" rel="modal-fb-btn">💬 2nd Facebook</a>
+    <!-- Mode 1: On-Site Checkout Form -->
+    <div id="modeOnSite">
+      <form id="onSiteOrderForm" onsubmit="submitOnSiteOrder(event)">
+        <div class="checkout-form-group">
+          <label>Your Name / Facebook Name</label>
+          <input type="text" id="orderBuyerName" class="checkout-input" placeholder="e.g. Juan Dela Cruz" required>
+        </div>
+        <div class="checkout-form-group">
+          <label>Contact Info (Messenger Link or Phone No.)</label>
+          <input type="text" id="orderContact" class="checkout-input" placeholder="e.g. facebook.com/juandelacruz" required>
+        </div>
+        <div class="checkout-form-group">
+          <label>Payment Method</label>
+          <select id="orderPaymentMethod" class="checkout-input" required>
+            <option value="GCash">GCash</option>
+            <option value="MariBank">MariBank</option>
+          </select>
+        </div>
+        <button type="submit" class="buy-btn" id="placeOrderBtn" style="margin-top: 15px;">SUBMIT ORDER</button>
+      </form>
+    </div>
+
+    <!-- Mode 2: Order via Facebook -->
+    <div id="modeFb" style="display: none;">
+      <div class="step-list">
+        <div class="step-item"><b>Step 1:</b> Copy the <b>Item ID</b> above.</div>
+        <div class="step-item"><b>Step 2:</b> Message me on Facebook and send the ID of the item you want to buy.</div>
+        <div class="step-item"><b>Step 3:</b> Choose your transaction method: Payment First or Middleman.</div>
       </div>
+      <div class="modal-fb-section" style="margin-top: 15px;">
+        <div class="modal-fb-label">Message us on Facebook:</div>
+        <div class="modal-fb-buttons">
+          <a href="https://www.facebook.com/mark.bnsacc1/" target="_blank" rel="noopener noreferrer" class="modal-fb-btn main">💬 Main Facebook</a>
+          <a href="https://www.facebook.com/mark.bnsacc" target="_blank" rel="noopener noreferrer" class="modal-fb-btn" style="color: #ffffff; background: #1c1c1c; border: 1px solid #333;">💬 2nd Facebook</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success View -->
+    <div id="orderSuccessView" style="display: none;" class="success-order-box">
+      <div style="font-size: 28px; margin-bottom: 10px;">🎉</div>
+      <div style="font-size: 16px; font-weight: 900; color: #fff; margin-bottom: 5px;">Order Placed Successfully!</div>
+      <div style="font-size: 11px; color: #aaa; line-height: 1.5;">Save your <b>Order Code</b> below. You will need this later to write a review/vouch once your transaction is completed:</div>
+      <div class="order-id-highlight" id="successOrderCode">ORD-XXXXXX</div>
+      <button class="buy-btn" onclick="closeCheckoutModal()">DONE / CLOSE</button>
     </div>
   </div>
 </div>
@@ -388,8 +445,8 @@
     
     <div class="step-list">
       <div class="step-item"><b>1. Strict No Bogus Buyers:</b> Do not inquire if you do not have payment ready or are not serious about the transaction.</div>
-      <div class="step-item"><b>2. Secure Transactions:</b> All transactions go through our official Facebook accounts or via a recognized Trusted Middleman (MM).</div>
-      <div class="step-item"><b>3. 3-Day Refund Policy:</b> We offer up to a <b>3-day warranty / refund</b> if you can prove that the purchased account was retrieved or lost through no fault of your own (adequate evidence or video proof is required).</div>
+      <div class="step-item"><b>2. Secure Transactions:</b> All transactions go through our official Facebook accounts or via On-Site Checkout / Trusted Middleman (MM).</div>
+      <div class="step-item"><b>3. 3-Day Refund Policy:</b> We offer up to a <b>3-day warranty / refund</b> if you can prove that the purchased account was retrieved or lost through no fault of your own.</div>
       <div class="step-item"><b>4. Finality:</b> Once account details are fully delivered and the warranty period expires, all sales are considered final.</div>
     </div>
 
@@ -419,6 +476,7 @@
   let currentTypeFilter = "all";
   let currentSearch = "";
   let currentSort = "default";
+  let selectedCheckoutItem = null;
 
   function loadUserBanner() {
     const bannerEl = document.getElementById("promoBanner");
@@ -487,11 +545,87 @@
     document.getElementById("imageModal").style.display = "none";
   }
 
+  function openCheckoutModal(itemId, price, game) {
+    selectedCheckoutItem = { id: itemId, price: price, game: game };
+    document.getElementById("checkoutItemId").textContent = itemId;
+    document.getElementById("checkoutItemPrice").textContent = price;
+    
+    document.getElementById("onSiteOrderForm").reset();
+    document.getElementById("modeOnSite").style.display = "block";
+    document.getElementById("modeFb").style.display = "none";
+    document.getElementById("orderSuccessView").style.display = "none";
+    document.querySelector(".checkout-tabs").style.display = "flex";
+    
+    switchCheckoutMode('onsite');
+    document.getElementById("checkoutModal").style.display = "flex";
+  }
+
+  function closeCheckoutModal() {
+    document.getElementById("checkoutModal").style.display = "none";
+  }
+
+  function switchCheckoutMode(mode) {
+    const tabOnSite = document.getElementById("tabOnSite");
+    const tabFb = document.getElementById("tabFb");
+    const modeOnSite = document.getElementById("modeOnSite");
+    const modeFb = document.getElementById("modeFb");
+
+    if(mode === 'onsite') {
+      tabOnSite.classList.add("active");
+      tabFb.classList.remove("active");
+      modeOnSite.style.display = "block";
+      modeFb.style.display = "none";
+    } else {
+      tabFb.classList.add("active");
+      tabOnSite.classList.remove("active");
+      modeFb.style.display = "block";
+      modeOnSite.style.display = "none";
+    }
+  }
+
+  async function submitOnSiteOrder(event) {
+    event.preventDefault();
+    const btn = document.getElementById("placeOrderBtn");
+    btn.textContent = "PROCESSING ORDER...";
+    btn.disabled = true;
+
+    try {
+      const uniqueOrderCode = "ORD-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+      const orderData = {
+        order_id: uniqueOrderCode,
+        customer_name: document.getElementById("orderBuyerName").value.trim(),
+        contact_info: document.getElementById("orderContact").value.trim(),
+        item_id: selectedCheckoutItem.id,
+        game: selectedCheckoutItem.game,
+        price: selectedCheckoutItem.price,
+        payment_method: document.getElementById("orderPaymentMethod").value,
+        status: 'Pending',
+        date_added: new Date().toISOString().split('T')[0]
+      };
+
+      const { error } = await supabaseClient.from('orders').insert([orderData]);
+      if(error) throw error;
+
+      document.querySelector(".checkout-tabs").style.display = "none";
+      document.getElementById("modeOnSite").style.display = "none";
+      document.getElementById("successOrderCode").textContent = uniqueOrderCode;
+      document.getElementById("orderSuccessView").style.display = "block";
+      btn.textContent = "SUBMIT ORDER";
+      btn.disabled = false;
+
+    } catch(err) {
+      console.error(err);
+      alert("Error submitting order: " + err.message);
+      btn.textContent = "SUBMIT ORDER";
+      btn.disabled = false;
+    }
+  }
+
   window.onclick = function(event) {
-    const buyModal = document.getElementById("buyModal");
+    const checkoutModal = document.getElementById("checkoutModal");
     const tosModal = document.getElementById("tosModal");
     const imageModal = document.getElementById("imageModal");
-    if (event.target === buyModal) closeBuyModal();
+    if (event.target === checkoutModal) closeCheckoutModal();
     if (event.target === tosModal) closeTosModal();
     if (event.target === imageModal) closeImageModal();
   }
@@ -608,15 +742,6 @@
     });
   }
 
-  function openBuyModal(itemId){
-    document.getElementById("modalItemId").textContent = itemId;
-    document.getElementById("buyModal").style.display = "flex";
-  }
-
-  function closeBuyModal(){
-    document.getElementById("buyModal").style.display = "none";
-  }
-
   function updateCategoryCounts() {
     const totalCount = accounts.length;
     const eggCount = accounts.filter(a => normalizeGame(a.game) === "steal an egg").length;
@@ -684,7 +809,7 @@
           <span class="price-label">PRICE</span>
           <span class="price-value">${safePrice}</span>
         </div>
-        <button class="buy-btn" onclick="openBuyModal('${safeId}')">🛒 BUY NOW</button>
+        <button class="buy-btn" onclick="openCheckoutModal('${safeId}', '${safePrice}', '${safeGame}')">🛒 BUY NOW</button>
       </div>
     `;
   }

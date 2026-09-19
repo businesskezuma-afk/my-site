@@ -3,67 +3,86 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Submit Vouch & Review - Roblox Marketplace</title>
+<title>Write a Vouch / Review - Roblox Marketplace</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff0033' font-family='Arial, sans-serif' font-weight='900' font-size='75'>K</text></svg>">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
   body { background: #090909; color: #f5f5f5; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-  .vouch-container { background: #101010; border: 1px solid #202020; border-radius: 14px; padding: 30px; width: 100%; max-width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-  .vouch-header { text-align: center; margin-bottom: 25px; }
-  .vouch-header h1 { color: #00d564; font-size: 22px; font-weight: 900; margin-bottom: 5px; }
-  .vouch-header p { color: #8b8b8b; font-size: 12px; }
-  .form-group { margin-bottom: 15px; text-align: left; }
+  .form-container { background: #101010; border: 1px solid #202020; border-radius: 14px; padding: 30px; width: 100%; max-width: 480px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+  .form-header { text-align: center; margin-bottom: 25px; }
+  .form-header h1 { color: #00d564; font-size: 22px; font-weight: 900; margin-bottom: 5px; }
+  .form-header p { color: #8b8b8b; font-size: 11px; }
+  
+  .form-group { margin-bottom: 15px; }
   .form-group label { display: block; margin-bottom: 5px; font-size: 11px; color: #aaa; font-weight: bold; text-transform: uppercase; }
   .form-control { width: 100%; padding: 12px; background: #141414; border: 1px solid #292929; border-radius: 8px; color: #fff; font-size: 14px; outline: none; transition: 0.2s; }
-  .form-control:focus { border-color: #00d564; }
-  textarea.form-control { resize: vertical; height: 90px; }
+  .form-control:focus { border-color: #00d564; background: #181818; }
+  
+  .rating-select { display: flex; gap: 10px; }
+  .rating-star { font-size: 20px; cursor: pointer; color: #444; transition: 0.2s; }
+  .rating-star.active { color: #ffbd2e; }
+
   .submit-btn { width: 100%; padding: 14px; margin-top: 10px; background: #00d564; color: #000; border: none; border-radius: 8px; font-size: 14px; font-weight: 900; cursor: pointer; transition: 0.2s; }
   .submit-btn:hover { background: #00e676; }
+  
   .back-link { display: block; text-align: center; margin-top: 15px; color: #888; font-size: 11px; text-decoration: none; }
   .back-link:hover { color: #fff; }
-  #statusMsg { margin-top: 15px; padding: 10px; border-radius: 8px; text-align: center; font-size: 12px; font-weight: bold; display: none; }
+
+  #statusMessage { margin-top: 15px; padding: 10px; border-radius: 8px; text-align: center; font-size: 12px; font-weight: bold; display: none; }
 </style>
 </head>
 <body>
 
-<div class="vouch-container">
-  <div class="vouch-header">
-    <h1>CUSTOMER VOUCH</h1>
-    <p>Iwanan ang iyong review at star rating para sa shop!</p>
+<div class="form-container">
+  <div class="form-header">
+    <h1>SUBMIT YOUR VOUCH</h1>
+    <p>Enter your Order Code to submit a verified review.</p>
   </div>
 
-  <form id="customerVouchForm">
+  <form id="vouchForm">
     <div class="form-group">
-      <label>Your Name / Facebook Name</label>
-      <input type="text" id="custName" class="form-control" placeholder="e.g. Juan Dela Cruz" required>
+      <label>Order Code (e.g. ORD-XXXXXX)</label>
+      <input type="text" id="orderCodeInput" class="form-control" placeholder="Enter your Order Code here" required>
     </div>
 
     <div class="form-group">
-      <label>Game / Item Purchased</label>
-      <input type="text" id="custGame" class="form-control" placeholder="e.g. Blox Fruits / Kitsune" required>
+      <label>Your Name (or Facebook Name)</label>
+      <input type="text" id="customerName" class="form-control" placeholder="e.g. John Doe" required>
     </div>
 
     <div class="form-group">
-      <label>Rating</label>
-      <select id="custRating" class="form-control">
-        <option value="5">⭐⭐⭐⭐⭐ (5 - Excellent)</option>
-        <option value="4">⭐⭐⭐⭐ (4 - Very Good)</option>
-        <option value="3">⭐⭐⭐ (3 - Good)</option>
-        <option value="2">⭐⭐ (2 - Fair)</option>
-        <option value="1">⭐ (1 - Poor)</option>
+      <label>Game or Item Purchased</label>
+      <select id="gameCategory" class="form-control" required>
+        <option value="" disabled selected>Select game category</option>
+        <option value="Steal An Egg">Steal An Egg</option>
+        <option value="Steal A Brainrot">Steal A Brainrot</option>
+        <option value="Blox Fruits">Blox Fruits</option>
+        <option value="General Shop">General Shop / Items</option>
       </select>
     </div>
 
     <div class="form-group">
-      <label>Feedback / Message</label>
-      <textarea id="custFeedback" class="form-control" placeholder="Isulat ang karanasan mo sa transaksiyon..." required></textarea>
+      <label>Rating</label>
+      <div class="rating-select" id="starContainer">
+        <span class="rating-star active" data-value="1">★</span>
+        <span class="rating-star active" data-value="2">★</span>
+        <span class="rating-star active" data-value="3">★</span>
+        <span class="rating-star active" data-value="4">★</span>
+        <span class="rating-star active" data-value="5">★</span>
+      </div>
+      <input type="hidden" id="ratingValue" value="5">
     </div>
 
-    <button type="submit" class="submit-btn">SUBMIT VOUCH</button>
-    <div id="statusMsg"></div>
+    <div class="form-group">
+      <label>Feedback / Message</label>
+      <textarea id="feedbackText" class="form-control" rows="4" placeholder="Super fast transaction and 100% legit! Account details provided instantly." required></textarea>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">VERIFY & SUBMIT VOUCH</button>
+    <div id="statusMessage"></div>
   </form>
 
-  <a href="index.html" class="back-link">← Bumalik sa Marketplace</a>
+  <a href="index.html" class="back-link">← Back to Marketplace</a>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -73,39 +92,77 @@
   const supabaseKey = 'sb_publishable_qWOJctjWQouOqSzjek73pw_FYz7MbyS';
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-  document.getElementById('customerVouchForm').addEventListener('submit', async function(e) {
+  const stars = document.querySelectorAll('.rating-star');
+  const ratingInput = document.getElementById('ratingValue');
+
+  stars.forEach((star, index) => {
+    star.addEventListener('click', () => {
+      const val = index + 1;
+      ratingInput.value = val;
+      stars.forEach((s, i) => {
+        if(i < val) s.classList.add('active');
+        else s.classList.remove('active');
+      });
+    });
+  });
+
+  document.getElementById('vouchForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    const btn = document.querySelector('.submit-btn');
-    const msg = document.getElementById('statusMsg');
-    btn.textContent = "ISINUSUMITE...";
+    const btn = document.getElementById('submitBtn');
+    const msg = document.getElementById('statusMessage');
+    const orderCode = document.getElementById('orderCodeInput').value.trim();
+
+    btn.textContent = "VERIFYING ORDER...";
     btn.disabled = true;
 
     try {
+      // 1. Check if order code is valid and completed in database
+      const { data: orderData, error: orderError } = await supabaseClient
+        .from('orders')
+        .select('*')
+        .eq('order_id', orderCode)
+        .single();
+
+      if(orderError || !orderData) {
+        throw new Error("Order Code not found. Please make sure you entered the correct code.");
+      }
+
+      if(String(orderData.status).toLowerCase() !== 'completed') {
+        throw new Error("This order status is currently '" + orderData.status + "'. It must be marked as 'Completed' by the admin before you can vouch.");
+      }
+
+      // 2. If valid and completed, save the vouch
       const vouchData = {
-        customer_name: document.getElementById('custName').value,
-        game: document.getElementById('custGame').value,
-        rating: parseInt(document.getElementById('custRating').value),
-        feedback: document.getElementById('custFeedback').value,
-        status: 'Pending'
+        customer_name: document.getElementById('customerName').value.trim(),
+        game: document.getElementById('gameCategory').value,
+        rating: parseInt(ratingInput.value),
+        feedback: document.getElementById('feedbackText').value.trim(),
+        status: 'Pending', // Awaiting admin approval for public display
+        date_added: new Date().toISOString().split('T')[0]
       };
 
-      const { error } = await supabaseClient.from('vouches').insert([vouchData]);
-      if(error) throw error;
+      const { error: insertError } = await supabaseClient.from('vouches').insert([vouchData]);
+      if(insertError) throw insertError;
 
-      msg.textContent = "Maraming salamat! Na-submit na ang iyong vouch at naghihintay na lamang ng admin approval.";
+      msg.textContent = "Success! Your order has been verified and your vouch has been submitted.";
       msg.style.color = "#00d564";
       msg.style.backgroundColor = "rgba(0,213,100,0.1)";
-      msg.style.display = "block";
-      document.getElementById('customerVouchForm').reset();
-    } catch(err) {
-      msg.textContent = "Error: " + err.message;
-      msg.style.color = "red";
-      msg.style.backgroundColor = "rgba(255,0,0,0.1)";
-      msg.style.display = "block";
-    }
+      msg.style.display = 'block';
+      document.getElementById('vouchForm').reset();
+      
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 3000);
 
-    btn.textContent = "SUBMIT VOUCH";
-    btn.disabled = false;
+    } catch(err) {
+      console.error(err);
+      msg.textContent = "Error: " + err.message;
+      msg.style.color = "#ff5f56";
+      msg.style.backgroundColor = "rgba(255,95,86,0.1)";
+      msg.style.display = 'block';
+      btn.textContent = "VERIFY & SUBMIT VOUCH";
+      btn.disabled = false;
+    }
   });
 </script>
 
