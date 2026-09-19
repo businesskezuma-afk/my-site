@@ -13,7 +13,7 @@
   .header h1 { color: #00d564; font-size: 22px; font-weight: 900; }
   .header-actions { display: flex; gap: 10px; }
   
-  .btn { padding: 9px 14px; background: #161616; border: 1px solid #333; color: #fff; font-size: 11px; font-weight: bold; border-radius: 8px; cursor: pointer; text-decoration: none; transition: 0.2s; }
+  .btn { padding: 9px 14px; background: #161616; border: 1px solid #333; color: #fff; font-size: 11px; font-weight: bold; border-radius: 8px; cursor: pointer; text-decoration: none; transition: 0.2s; position: relative; z-index: 5; }
   .btn:hover { background: #222; border-color: #555; }
   .btn.primary { background: #00d564; color: #000; border-color: #00d564; font-weight: 900; }
   .btn.primary:hover { background: #00e676; }
@@ -95,7 +95,7 @@
     </div>
   </div>
 
-  <!-- Manage On-Site Orders -->
+  <!-- Manage On-Site Orders (May kasamang Delete button para sa troller/bogus buyer) -->
   <div class="card">
     <div class="section-title">Manage On-Site Orders</div>
     <div style="overflow-x: auto;">
@@ -202,6 +202,7 @@
     </form>
   </div>
 
+  <!-- Manage Customer Vouches (Naayos ang pagka-mapindot ng mga button) -->
   <div class="card">
     <div class="section-title">Manage Customer Vouches</div>
     <div style="overflow-x: auto;">
@@ -326,6 +327,7 @@
     toggleGameFields();
   }
 
+  // Ginawang kasama ang Delete button para sa mga troller/bogus buyers
   async function loadOrdersAdmin() {
     const tbody = document.getElementById('ordersTableBody');
     try {
@@ -354,6 +356,7 @@
             <td>
               ${o.status !== 'Completed' ? `<button class="btn primary" style="padding: 4px 8px; font-size: 10px;" onclick="updateOrderStatus('${o.order_id}', 'Completed')">Complete</button>` : ''}
               ${o.status !== 'Cancelled' ? `<button class="btn danger" style="padding: 4px 8px; font-size: 10px;" onclick="updateOrderStatus('${o.order_id}', 'Cancelled')">Cancel</button>` : ''}
+              <button class="btn danger" style="padding: 4px 8px; font-size: 10px; margin-top: 3px;" onclick="deleteOrder('${o.id}')">🗑️ Delete</button>
             </td>
           </tr>
         `;
@@ -371,6 +374,20 @@
       loadOrdersAdmin();
     } catch(err) {
       alert('Error updating order: ' + err.message);
+    }
+  }
+
+  // Function para ma-delete ang order ng troller/bogus buyer
+  async function deleteOrder(id) {
+    if(confirm('Sigurado ka bang gusto mong burahin ang order na ito? (Para sa troller o bogus buyer)')) {
+      try {
+        const { error } = await supabaseClient.from('orders').delete().eq('id', id);
+        if(error) throw error;
+        alert('Matagumpay na nabura ang order.');
+        loadOrdersAdmin();
+      } catch(err) {
+        alert('Error deleting order: ' + err.message);
+      }
     }
   }
 
@@ -404,6 +421,7 @@
     }
   }
 
+  // Naayos ang pagka-mapindot ng mga button sa vouches gamit ang tamang z-index at class
   async function loadVouchesAdmin() {
     const tbody = document.getElementById('vouchesTableBody');
     try {
