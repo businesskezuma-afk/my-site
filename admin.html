@@ -36,15 +36,16 @@
   .divider { border-top: 1px dashed #222; margin: 20px 0; }
 
   table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
-  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #1c1c1c; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #1c1c1c; position: relative; }
   th { color: #777; font-size: 10px; text-transform: uppercase; background: #141414; }
   td { color: #ddd; }
 
-  .status-badge { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 9px; font-weight: 900; text-transform: uppercase; }
+  .status-badge { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
   .status-available { background: rgba(0,213,100,0.1); color: #00d564; border: 1px solid rgba(0,213,100,0.3); }
   .status-sold { background: rgba(232,154,36,0.1); color: #e89a24; border: 1px solid rgba(232,154,36,0.3); }
   .status-pending { background: rgba(255,189,46,0.1); color: #ffbd2e; border: 1px solid rgba(255,189,46,0.3); }
   .status-completed { background: rgba(0,213,100,0.15); color: #00e676; border: 1px solid rgba(0,213,100,0.4); }
+  .status-cancelled { background: rgba(255,95,86,0.15); color: #ff5f56; border: 1px solid rgba(255,95,86,0.4); }
 
   .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #090909; display: flex; justify-content: center; align-items: center; z-index: 9999; }
   .login-box { background: #101010; border: 1px solid #202020; border-radius: 14px; padding: 30px; width: 100%; max-width: 400px; text-align: center; }
@@ -95,9 +96,12 @@
     </div>
   </div>
 
-  <!-- Manage On-Site Orders (May kasamang Delete button para sa troller/bogus buyer) -->
+  <!-- Manage On-Site Orders with Search Engine -->
   <div class="card">
     <div class="section-title">Manage On-Site Orders</div>
+    <div style="margin-bottom: 15px;">
+      <input type="text" id="orderSearchInput" class="form-control" placeholder="🔎 Search by Order Code (e.g. ORD-XXXXXX)..." oninput="filterOrdersAdmin()">
+    </div>
     <div style="overflow-x: auto;">
       <table>
         <thead>
@@ -202,7 +206,7 @@
     </form>
   </div>
 
-  <!-- Manage Customer Vouches (Naayos ang pagka-mapindot ng mga button) -->
+  <!-- Manage Customer Vouches -->
   <div class="card">
     <div class="section-title">Manage Customer Vouches</div>
     <div style="overflow-x: auto;">
@@ -253,6 +257,8 @@
   const supabaseUrl = 'https://ytrtivbepvpjbgdtuqrt.supabase.co';
   const supabaseKey = 'sb_publishable_qWOJctjWQouOqSzjek73pw_FYz7MbyS';
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+  let allOrdersData = [];
 
   async function checkSession() {
     const { data: { session } } = await supabaseClient.auth.getSession();
@@ -327,44 +333,72 @@
     toggleGameFields();
   }
 
-  // Ginawang kasama ang Delete button para sa mga troller/bogus buyers
   async function loadOrdersAdmin() {
-    const tbody = document.getElementById('ordersTableBody');
     try {
       const { data, error } = await supabaseClient.from('orders').select('*').order('date_added', { ascending: false });
       if(error) throw error;
 
-      if(!data || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #666;">No on-site orders found.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = data.map(o => {
-        let badgeClass = 'status-pending';
-        if(o.status === 'Completed') badgeClass = 'status-completed';
-        else if(o.status === 'Cancelled') badgeClass = 'status-sold';
-
-        return `
-          <tr>
-            <td>${escapeHTML(o.date_added)}</td>
-            <td><b>${escapeHTML(o.order_id)}</b></td>
-            <td>${escapeHTML(o.customer_name)}</td>
-            <td>${escapeHTML(o.contact_info)}</td>
-            <td>${escapeHTML(o.item_id)}</td>
-            <td>${escapeHTML(o.payment_method)} (₱${escapeHTML(o.price)})</td>
-            <td><span class="status-badge ${badgeClass}">${escapeHTML(o.status)}</span></td>
-            <td>
-              ${o.status !== 'Completed' ? `<button class="btn primary" style="padding: 4px 8px; font-size: 10px;" onclick="updateOrderStatus('${o.order_id}', 'Completed')">Complete</button>` : ''}
-              ${o.status !== 'Cancelled' ? `<button class="btn danger" style="padding: 4px 8px; font-size: 10px;" onclick="updateOrderStatus('${o.order_id}', 'Cancelled')">Cancel</button>` : ''}
-              <button class="btn danger" style="padding: 4px 8px; font-size: 10px; margin-top: 3px;" onclick="deleteOrder('${o.id}')">🗑️ Delete</button>
-            </td>
-          </tr>
-        `;
-      }).join('');
+      allOrdersData = data || [];
+      renderOrdersTable(allOrdersData);
     } catch(err) {
       console.error(err);
-      tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ff5f56;">Error loading orders.</td></tr>`;
+      document.getElementById('ordersTableBody').innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ff5f56;">Error loading orders.</td></tr>`;
     }
+  }
+
+  function renderOrdersTable(ordersList) {
+    const tbody = document.getElementById('ordersTableBody');
+    if(!ordersList || ordersList.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #666;">No on-site orders found.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = ordersList.map(o => {
+      const dbStatus = String(o.status || '').trim().toLowerCase();
+      let badgeClass = 'status-pending';
+      let displayStatus = 'PROCESSING';
+      
+      // I-format ang status para maiwasan ang casing issues sa Supabase
+      if (dbStatus === 'completed') {
+        displayStatus = 'COMPLETED';
+        badgeClass = 'status-completed';
+      } else if (dbStatus === 'cancelled') {
+        displayStatus = 'CANCELLED';
+        badgeClass = 'status-cancelled';
+      } else {
+        displayStatus = 'PROCESSING';
+        badgeClass = 'status-pending';
+      }
+
+      // Nagpakita na ang dalawang button: Complete (kaliwa) at Cancel (kanan)
+      const actionButtons = (dbStatus !== 'completed' && dbStatus !== 'cancelled') 
+        ? `<button class="btn primary" style="padding: 4px 8px; font-size: 10px; position: relative; z-index: 10;" onclick="updateOrderStatus('${escapeHTML(o.order_id)}', 'Completed')">Complete</button>
+           <button class="btn danger" style="padding: 4px 8px; font-size: 10px; position: relative; z-index: 10; margin-left: 5px;" onclick="updateOrderStatus('${escapeHTML(o.order_id)}', 'Cancelled')">Cancel</button>` 
+        : `<span style="font-size: 10px; color: #555;">No Actions Available</span>`;
+
+      return `
+        <tr>
+          <td>${escapeHTML(o.date_added)}</td>
+          <td><b>${escapeHTML(o.order_id)}</b></td>
+          <td>${escapeHTML(o.customer_name)}</td>
+          <td>${escapeHTML(o.contact_info)}</td>
+          <td>${escapeHTML(o.item_id)}</td>
+          <td>${escapeHTML(o.payment_method)} (₱${escapeHTML(o.price)})</td>
+          <td><span class="status-badge ${badgeClass}">${escapeHTML(displayStatus)}</span></td>
+          <td>${actionButtons}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function filterOrdersAdmin() {
+    const query = document.getElementById('orderSearchInput').value.trim().toLowerCase();
+    if(!query) {
+      renderOrdersTable(allOrdersData);
+      return;
+    }
+    const filtered = allOrdersData.filter(o => String(o.order_id || "").toLowerCase().includes(query));
+    renderOrdersTable(filtered);
   }
 
   async function updateOrderStatus(orderId, newStatus) {
@@ -374,20 +408,6 @@
       loadOrdersAdmin();
     } catch(err) {
       alert('Error updating order: ' + err.message);
-    }
-  }
-
-  // Function para ma-delete ang order ng troller/bogus buyer
-  async function deleteOrder(id) {
-    if(confirm('Sigurado ka bang gusto mong burahin ang order na ito? (Para sa troller o bogus buyer)')) {
-      try {
-        const { error } = await supabaseClient.from('orders').delete().eq('id', id);
-        if(error) throw error;
-        alert('Matagumpay na nabura ang order.');
-        loadOrdersAdmin();
-      } catch(err) {
-        alert('Error deleting order: ' + err.message);
-      }
     }
   }
 
@@ -410,8 +430,8 @@
           <td>₱${escapeHTML(item.price)}</td>
           <td><span class="status-badge ${item.status === 'Available' ? 'status-available' : 'status-sold'}">${escapeHTML(item.status)}</span></td>
           <td>
-            <button class="btn" style="padding: 5px 8px; font-size: 10px;" onclick="toggleStatus('${item.id}', '${item.status}')">${item.status === 'Available' ? 'Mark Sold' : 'Mark Available'}</button>
-            <button class="btn danger" style="padding: 5px 8px; font-size: 10px;" onclick="deleteItem('${item.id}')">Delete</button>
+            <button class="btn" style="padding: 5px 8px; font-size: 10px; position: relative; z-index: 10;" onclick="toggleStatus('${item.id}', '${item.status}')">${item.status === 'Available' ? 'Mark Sold' : 'Mark Available'}</button>
+            <button class="btn danger" style="padding: 5px 8px; font-size: 10px; position: relative; z-index: 10;" onclick="deleteItem('${item.id}')">Delete</button>
           </td>
         </tr>
       `).join('');
@@ -421,7 +441,6 @@
     }
   }
 
-  // Naayos ang pagka-mapindot ng mga button sa vouches gamit ang tamang z-index at class
   async function loadVouchesAdmin() {
     const tbody = document.getElementById('vouchesTableBody');
     try {
@@ -442,8 +461,8 @@
           <td style="max-width: 250px; word-break: break-word;">${escapeHTML(v.feedback)}</td>
           <td><span class="status-badge ${v.status === 'Approved' ? 'status-available' : 'status-pending'}">${escapeHTML(v.status)}</span></td>
           <td>
-            ${v.status === 'Pending' ? `<button class="btn primary" style="padding: 5px 8px; font-size: 10px;" onclick="approveVouch(${v.id})">Approve</button>` : ''}
-            <button class="btn danger" style="padding: 5px 8px; font-size: 10px;" onclick="deleteVouch(${v.id})">Delete</button>
+            ${v.status === 'Pending' ? `<button class="btn primary" style="padding: 5px 8px; font-size: 10px; position: relative; z-index: 10;" onclick="approveVouch('${v.id}')">Approve</button>` : ''}
+            <button class="btn danger" style="padding: 5px 8px; font-size: 10px; position: relative; z-index: 10;" onclick="deleteVouch('${v.id}')">Delete</button>
           </td>
         </tr>
       `).join('');

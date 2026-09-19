@@ -123,13 +123,14 @@
   .write-vouch-btn { padding: 8px 14px; background: #181818; border: 1px solid #333; color: var(--green-light); border-radius: 8px; font-size: 10px; font-weight: 900; text-decoration: none; }
   .write-vouch-btn:hover { background: #00d564; color: #000; }
   
-  .vouches-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  .vouch-card { background: var(--surface); border: 1px solid var(--border); border-radius: 11px; padding: 15px; }
+  .vouches-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .vouch-card { background: var(--surface); border: 1px solid var(--border); border-radius: 11px; padding: 15px; display: flex; flex-direction: column; justify-content: space-between; }
   .vouch-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
   .vouch-name { font-size: 12px; font-weight: 900; color: #fff; }
   .vouch-stars { color: #ffbd2e; font-size: 11px; }
-  .vouch-feedback { font-size: 11px; color: #aaa; line-height: 1.5; margin-bottom: 8px; }
-  .vouch-game { font-size: 8px; color: #666; text-transform: uppercase; font-weight: bold; }
+  .vouch-feedback { font-size: 11px; color: #aaa; line-height: 1.5; margin-bottom: 8px; word-break: break-word; }
+  .vouch-game { font-size: 8px; color: var(--green); text-transform: uppercase; font-weight: bold; margin-bottom: 6px; }
+  .vouch-date { font-size: 9px; color: #555; text-align: right; margin-top: 10px; }
 
   .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
   .modal-box { background: #141414; border: 1px solid #282828; border-radius: 14px; max-width: 480px; width: 100%; padding: 25px; position: relative; }
@@ -441,7 +442,7 @@
       game: selectedCheckoutItem.game,
       price: selectedCheckoutItem.price,
       payment_method: document.getElementById("orderPaymentMethod").value,
-      status: 'Pending',
+      status: 'Processing',
       date_added: new Date().toISOString().split('T')[0]
     };
     await supabaseClient.from('orders').insert([orderData]);
@@ -715,7 +716,45 @@
     }
   }
 
+  // Awtomatikong kukuha at magpapakita ng 4 na pinakabagong approved vouches
+  async function loadLatestVouches() {
+    const vouchesGrid = document.getElementById("vouchesGrid");
+    try {
+      const { data, error } = await supabaseClient
+        .from('vouches')
+        .select('*')
+        .eq('status', 'Approved')
+        .order('date_added', { ascending: false })
+        .limit(4);
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        vouchesGrid.innerHTML = `<div style="color: #666; font-size: 11px; grid-column: 1/-1; text-align: center; padding: 20px;">No vouches available yet.</div>`;
+        return;
+      }
+
+      vouchesGrid.innerHTML = data.map(v => `
+        <div class="vouch-card">
+          <div>
+            <div class="vouch-header">
+              <span class="vouch-name">${escapeHTML(v.customer_name)}</span>
+              <span class="vouch-stars">${'★'.repeat(Number(v.rating) || 5)}</span>
+            </div>
+            <div class="vouch-game">${escapeHTML(v.game)}</div>
+            <div class="vouch-feedback">"${escapeHTML(v.feedback)}"</div>
+          </div>
+          <div class="vouch-date">${escapeHTML(v.date_added || '')}</div>
+        </div>
+      `).join('');
+    } catch (err) {
+      console.error(err);
+      vouchesGrid.innerHTML = `<div style="color: #ff5f56; font-size: 11px; grid-column: 1/-1; text-align: center; padding: 20px;">Error loading vouches.</div>`;
+    }
+  }
+
   loadAccounts();
+  loadLatestVouches();
   loadUserBanner();
   checkShopAvailability();
   setupVisitorCounter();
