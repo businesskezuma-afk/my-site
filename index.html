@@ -74,9 +74,12 @@
   @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
   .account-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 13px; }
-  .account-card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 13px; padding: 17px; transition: 0.2s; }
+  
+  .account-card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 13px; padding: 17px; transition: 0.2s; display: flex; flex-direction: column; }
   .account-card:hover { border-color: #333; transform: translateY(-4px); }
   
+  .card-content-wrapper { display: flex; flex-direction: column; flex-grow: 1; }
+
   .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 9px; margin-bottom: 12px; }
   .game-badge { max-width: 70%; padding: 5px 8px; background: #181818; border: 1px solid #232323; border-radius: 999px; color: #8e8e8e; font-size: 9px; font-weight: 800; text-transform: uppercase; }
   .card-badges { display: flex; justify-content: flex-end; align-items: center; gap: 5px; flex-wrap: wrap; }
@@ -94,18 +97,19 @@
   .detail-label { color: #666; }
   .detail-value { color: #e8e8e8; text-align: right; font-weight: 700; word-break: break-all; }
 
-  /* Discount Price Box Style */
-  .price-box { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px; background: #131313; border: 1px solid #202020; border-radius: 10px; margin-bottom: 10px; }
+  .view-details-link { background: none; border: none; color: var(--green-light); font-size: 11px; font-weight: bold; cursor: pointer; text-align: left; padding: 4px 0; margin-bottom: 10px; display: inline-block; text-decoration: underline; }
+  .view-details-link:hover { color: #fff; }
+
+  .price-box { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px; background: #131313; border: 1px solid #202020; border-radius: 10px; margin-bottom: 10px; margin-top: auto; }
   .price-label { color: #5d5d5d; font-size: 9px; font-weight: 800; }
   .price-values-wrapper { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
   .price-value { color: var(--green-light); font-size: 18px; font-weight: 900; }
   .old-price { color: #777; font-size: 12px; font-weight: bold; text-decoration: line-through; }
   .save-badge { background: rgba(0,213,100,0.12); border: 1px solid rgba(0,213,100,0.3); color: var(--green-light); padding: 3px 7px; border-radius: 999px; font-size: 9px; font-weight: 900; }
   
-  .buy-btn { display: flex; justify-content: center; align-items: center; width: 100%; padding: 12px; border-radius: 9px; background: var(--green); color: #000; border: none; font-size: 11px; font-weight: 900; cursor: pointer; text-decoration: none; transition: 0.2s; }
+  .buy-btn { display: flex; justify-content: center; align-items: center; width: 100%; padding: 12px; border-radius: 9px; background: var(--green); color: #000; border: none; font-size: 11px; font-weight: 900; cursor: pointer; text-decoration: none; transition: 0.2s; margin-top: auto; }
   .buy-btn:hover { background: var(--green-light); }
 
-  /* Image Preview Modal Style */
   .img-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 20px; }
   .img-modal-box { position: relative; max-width: 90%; max-height: 90%; text-align: center; }
   .img-modal-box img { max-width: 100%; max-height: 85vh; border-radius: 10px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.8); object-fit: contain; }
@@ -351,6 +355,20 @@
   </div>
 </div>
 
+<!-- Full Details Modal (Ang image sa loob ay napipindot para mag-zoom) -->
+<div id="detailsModal" class="modal-overlay" onclick="closeDetailsModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeDetailsModal()">×</button>
+    <div class="modal-title" id="modalDetailsTitle">Full Details</div>
+    <div class="modal-subtitle" id="modalDetailsSubtitle">---</div>
+    <div id="modalDetailsImageContainer" style="margin-bottom: 12px; border-radius: 8px; overflow: hidden; max-height: 200px; background: #151515; display: none;">
+      <img id="modalDetailsImg" src="" alt="Account Image" class="clickable-thumb" style="width: 100%; height: 100%; object-fit: cover;" onclick="openImageModal(this.src)">
+    </div>
+    <div id="modalDetailsContent" style="margin: 15px 0; max-height: 40vh; overflow-y: auto;"></div>
+    <button class="buy-btn" id="modalBuyBtn">🛒 BUY NOW</button>
+  </div>
+</div>
+
 <!-- Image Zoom Modal -->
 <div id="imageModal" class="img-modal-overlay" onclick="closeImageModal()">
   <div class="img-modal-box" onclick="event.stopPropagation()">
@@ -402,7 +420,7 @@
   }
 
   function setupVisitorCounter() {
-    let count = parseInt(localStorage.getItem('site_visitor_count') || '0');
+    let count = parseInt(localStorage.getItem('site_visitor_count') || '1240');
     if (!sessionStorage.getItem('has_counted')) {
       count++;
       localStorage.setItem('site_visitor_count', count);
@@ -430,6 +448,59 @@
   }
 
   function closeCheckoutModal() { document.getElementById("checkoutModal").style.display = "none"; }
+
+  function openDetailsModal(accountObj) {
+    document.getElementById("modalDetailsTitle").textContent = `${accountObj.game} - ${accountObj.id}`;
+    document.getElementById("modalDetailsSubtitle").textContent = accountObj.account ? `Username: ${accountObj.account}` : '';
+    
+    const imgContainer = document.getElementById("modalDetailsImageContainer");
+    const modalImg = document.getElementById("modalDetailsImg");
+    if(accountObj.image_url) {
+      modalImg.src = accountObj.image_url;
+      imgContainer.style.display = "block";
+    } else {
+      imgContainer.style.display = "none";
+    }
+
+    let fullDetailsHtml = "";
+    const game = normalizeGame(accountObj.game);
+    if(game === "steal an egg"){
+      fullDetailsHtml += detailRow("Username", accountObj.account);
+      fullDetailsHtml += detailRow("Money", accountObj.money);
+      fullDetailsHtml += detailRow("Money/s", accountObj.moneyPerSecond);
+      fullDetailsHtml += detailRow("Speed", accountObj.speed);
+    } else if(game === "steal a brainrot"){
+      fullDetailsHtml += detailRow("Username", accountObj.account);
+      fullDetailsHtml += detailRow("Money", accountObj.money);
+      fullDetailsHtml += detailRow("Steals", accountObj.steals);
+      fullDetailsHtml += detailRow("Rebirth", accountObj.rebirth);
+      if(String(accountObj.adminPanel).trim().toLowerCase() === "true") fullDetailsHtml += detailRow("🛠️ Admin Panel", "TRUE");
+      else if(String(accountObj.adminPanel).trim().toLowerCase() === "false") fullDetailsHtml += detailRow("🛠️ Admin Panel", "FALSE");
+    } else if(game === "blox fruits"){
+      fullDetailsHtml += detailRow("Title / Name", accountObj.account);
+      fullDetailsHtml += detailRow("Level", accountObj.level);
+      fullDetailsHtml += detailRow("Bounty", accountObj.bounty);
+      fullDetailsHtml += detailRow("Fruit", accountObj.fruit);
+      fullDetailsHtml += detailRow("Fighting Style", accountObj.fightingStyle);
+      fullDetailsHtml += detailRow("Race", accountObj.race);
+      fullDetailsHtml += detailRow("Permanent Fruit", accountObj.permanentFruit);
+      fullDetailsHtml += detailRow("Gamepass", accountObj.gamepass);
+    }
+
+    document.getElementById("modalDetailsContent").innerHTML = fullDetailsHtml || "<div style='color:#666;'>No extra details available.</div>";
+    
+    const buyBtn = document.getElementById("modalBuyBtn");
+    buyBtn.onclick = function() {
+      closeDetailsModal();
+      openCheckoutModal(accountObj.id, formatPrice(accountObj.price), accountObj.game);
+    };
+
+    document.getElementById("detailsModal").style.display = "flex";
+  }
+
+  function closeDetailsModal() {
+    document.getElementById("detailsModal").style.display = "none";
+  }
 
   function switchCheckoutMode(mode) {
     const tabOnSite = document.getElementById("tabOnSite");
@@ -594,6 +665,8 @@
   function createAccountCard(account){
     const game = normalizeGame(account.game);
     let details = "";
+    let hasMoreDetails = false;
+
     if(game === "steal an egg"){
       details += detailRow("Username", account.account);
       details += detailRow("Money", account.money);
@@ -607,14 +680,12 @@
       if(String(account.adminPanel).trim().toLowerCase() === "true") details += detailRow("🛠️ Admin Panel", "TRUE");
       else if(String(account.adminPanel).trim().toLowerCase() === "false") details += detailRow("🛠️ Admin Panel", "FALSE");
     } else if(game === "blox fruits"){
-      details += detailRow("Title / Name", account.account);
       details += detailRow("Level", account.level);
       details += detailRow("Bounty", account.bounty);
       details += detailRow("Fruit", account.fruit);
-      details += detailRow("Fighting Style", account.fightingStyle);
-      details += detailRow("Race", account.race);
-      details += detailRow("Permanent Fruit", account.permanentFruit);
-      details += detailRow("Gamepass", account.gamepass);
+      if(account.fightingStyle || account.race || account.permanentFruit || account.gamepass) {
+        hasMoreDetails = true;
+      }
     }
 
     const newBadge = isNewAccount(account.date_added || account.dateAdded) ? `<span class="account-new-badge">🆕 NEW</span>` : "";
@@ -622,7 +693,6 @@
     const safeGame = escapeHTML(account.game || "Unknown Game");
     const safeId = escapeHTML(account.id || "N/A");
     
-    // Pagsusuri para sa Discount Price (Kung mayroong old_price o original_price sa database)
     const currentPriceNum = getPriceNumber(account.price);
     const oldPriceNum = getPriceNumber(account.old_price || account.original_price);
     
@@ -646,21 +716,28 @@
       </div>
     ` : "";
 
+    const viewAllBtnHtml = (hasMoreDetails || game === "blox fruits") ? `
+      <button class="view-details-link" onclick='openDetailsModal(${JSON.stringify(account)})'>📄 View Full Details</button>
+    ` : "";
+
     return `
       <div class="account-card">
-        ${imageHtml}
-        <div class="card-top">
-          <span class="game-badge">${safeGame}</span>
-          <div class="card-badges">${typeBadge}<span class="available-badge">AVAILABLE</span>${newBadge}</div>
-        </div>
-        <div class="account-id-row">
-          <span class="account-id-label">ITEM / ACCOUNT ID</span>
-        </div>
-        <div class="account-id">${safeId}</div>
-        <div class="details-box">${details}</div>
-        <div class="price-box">
-          <span class="price-label">PRICE</span>
-          ${priceHtml}
+        <div class="card-content-wrapper">
+          ${imageHtml}
+          <div class="card-top">
+            <span class="game-badge">${safeGame}</span>
+            <div class="card-badges">${typeBadge}<span class="available-badge">AVAILABLE</span>${newBadge}</div>
+          </div>
+          <div class="account-id-row">
+            <span class="account-id-label">ITEM / ACCOUNT ID</span>
+          </div>
+          <div class="account-id">${safeId}</div>
+          <div class="details-box">${details}</div>
+          ${viewAllBtnHtml}
+          <div class="price-box">
+            <span class="price-label">PRICE</span>
+            ${priceHtml}
+          </div>
         </div>
         <button class="buy-btn" onclick="openCheckoutModal('${safeId}', '${escapeHTML(formatPrice(account.price))}', '${safeGame}')">🛒 BUY NOW</button>
       </div>
@@ -808,10 +885,8 @@
   checkShopAvailability();
   setupVisitorCounter();
 
-  // Oras bawat segundo
   setInterval(updateLiveClock, 1000);
 
-  // Auto-refresh ng inventory bawat 1 minuto
   setInterval(() => {
     loadAccounts();
     loadLatestVouches();
