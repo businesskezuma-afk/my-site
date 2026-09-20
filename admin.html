@@ -147,12 +147,13 @@
           <input type="text" id="itemAccount" class="form-control" placeholder="Roblox Username or Title">
         </div>
         <div class="form-group">
-          <label>Current / Selling Price (PHP)</label>
-          <input type="text" id="itemPrice" class="form-control" placeholder="e.g. 500" required>
+          <label>Original / Normal Price (PHP)</label>
+          <input type="number" id="itemPrice" class="form-control" placeholder="e.g. 1000" oninput="calculateDiscountPreview()" required>
         </div>
         <div class="form-group">
-          <label>Old / Original Price (PHP) [Optional for Discount]</label>
-          <input type="text" id="itemOldPrice" class="form-control" placeholder="e.g. 750 (Leave blank if no discount)">
+          <label>Discount Percentage (%) [e.g. 20, 30, 50]</label>
+          <input type="number" id="itemDiscountPercent" class="form-control" placeholder="Leave blank or 0 if no discount" min="0" max="100" oninput="calculateDiscountPreview()">
+          <small style="color: #aaa; display: block; margin-top: 5px;">Computed Discounted Price: <span id="previewDiscountedPrice" style="color: #00d564; font-weight: bold;">₱0</span></small>
         </div>
         <div class="form-group">
           <label>Listing Type</label>
@@ -335,11 +336,24 @@
     document.getElementById('eggFields').style.display = (game === 'Steal An Egg') ? 'block' : 'none';
   }
 
+  function calculateDiscountPreview() {
+    const basePrice = parseFloat(document.getElementById('itemPrice').value) || 0;
+    const discountPct = parseFloat(document.getElementById('itemDiscountPercent').value) || 0;
+    
+    let finalPrice = basePrice;
+    if (discountPct > 0 && discountPct <= 100) {
+      finalPrice = Math.round(basePrice - (basePrice * (discountPct / 100)));
+    }
+    
+    document.getElementById('previewDiscountedPrice').textContent = "₱" + finalPrice.toLocaleString("en-PH");
+  }
+
   async function loadAdminData() {
     loadOrdersAdmin();
     loadInventoryAdmin();
     loadVouchesAdmin();
     toggleGameFields();
+    calculateDiscountPreview();
   }
 
   async function loadOrdersAdmin() {
@@ -515,12 +529,23 @@
         imageUrl = publicUrlData.publicUrl;
       }
 
+      const basePrice = parseFloat(document.getElementById('itemPrice').value.trim()) || 0;
+      const discountPct = parseFloat(document.getElementById('itemDiscountPercent').value.trim()) || 0;
+
+      let finalSellingPrice = basePrice;
+      let originalPriceToSave = null;
+
+      if (discountPct > 0) {
+        originalPriceToSave = basePrice;
+        finalSellingPrice = Math.round(basePrice - (basePrice * (discountPct / 100)));
+      }
+
       const newItem = {
         id: document.getElementById('itemId').value.trim(),
         game: game,
         listing_type: document.getElementById('itemType').value,
-        price: document.getElementById('itemPrice').value.trim(),
-        old_price: document.getElementById('itemOldPrice').value.trim() || null,
+        price: finalSellingPrice,
+        old_price: originalPriceToSave,
         account: document.getElementById('itemAccount').value.trim(),
         image_url: imageUrl,
         status: 'Available'
@@ -546,7 +571,6 @@
       }
 
       if(editOriginalId) {
-        // Ginamit na natin ang .update() para hindi mag-error sa RLS policy
         const { error } = await supabaseClient
           .from('accounts')
           .update(newItem)
@@ -575,8 +599,19 @@
     document.getElementById('itemId').value = item.id;
     document.getElementById('itemGame').value = item.game;
     document.getElementById('itemType').value = item.listing_type || 'Account';
-    document.getElementById('itemPrice').value = item.price;
-    document.getElementById('itemOldPrice').value = item.old_price || '';
+    
+    let currentP = parseFloat(item.price) || 0;
+    let oldP = parseFloat(item.old_price) || 0;
+    let computedDiscount = "";
+
+    if (oldP > currentP) {
+      document.getElementById('itemPrice').value = oldP;
+      computedDiscount = Math.round(((oldP - currentP) / oldP) * 100);
+    } else {
+      document.getElementById('itemPrice').value = currentP;
+    }
+
+    document.getElementById('itemDiscountPercent').value = computedDiscount;
     document.getElementById('itemAccount').value = item.account || '';
     document.getElementById('existingImageUrl').value = item.image_url || '';
 
@@ -597,6 +632,8 @@
     document.getElementById('eggMoneySec').value = item.moneyPerSecond || '';
     document.getElementById('eggSpeed').value = item.speed || '';
 
+    calculateDiscountPreview();
+
     document.getElementById('formTitle').textContent = `Edit Listing / Control Discount (${item.id})`;
     document.getElementById('publishBtn').textContent = 'UPDATE LISTING';
     document.getElementById('cancelEditBtn').style.display = 'inline-block';
@@ -612,6 +649,7 @@
     document.getElementById('formTitle').textContent = 'Add New Listing';
     document.getElementById('publishBtn').textContent = 'PUBLISH LISTING';
     document.getElementById('cancelEditBtn').style.display = 'none';
+    calculateDiscountPreview();
     toggleGameFields();
   }
 
