@@ -546,10 +546,12 @@
       }
 
       if(editOriginalId) {
-        if(editOriginalId !== newItem.id) {
-          await supabaseClient.from('accounts').delete().eq('id', editOriginalId);
-        }
-        const { error } = await supabaseClient.from('accounts').upsert([newItem]);
+        // Ginamit na natin ang .update() para hindi mag-error sa RLS policy
+        const { error } = await supabaseClient
+          .from('accounts')
+          .update(newItem)
+          .eq('id', editOriginalId);
+
         if(error) throw error;
         alert('Listing and discount updated successfully!');
       } else {
@@ -578,7 +580,6 @@
     document.getElementById('itemAccount').value = item.account || '';
     document.getElementById('existingImageUrl').value = item.image_url || '';
 
-    // I-populate ang specific game fields para hindi mawala ang mga detalye
     document.getElementById('bfLevel').value = item.level || '';
     document.getElementById('bfBounty').value = item.bounty || '';
     document.getElementById('bfFruit').value = item.fruit || '';
