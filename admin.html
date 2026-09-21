@@ -134,6 +134,7 @@
             <option value="Blox Fruits">Blox Fruits</option>
             <option value="Steal A Brainrot">Steal A Brainrot</option>
             <option value="Steal An Egg">Steal An Egg</option>
+            <option value="Minecraft">Minecraft</option>
           </select>
         </div>
         <div class="form-group">
@@ -203,6 +204,16 @@
           <div class="form-group"><label>Money</label><input type="text" id="eggMoney" class="form-control" placeholder="e.g. 1M"></div>
           <div class="form-group"><label>Money / Second</label><input type="text" id="eggMoneySec" class="form-control" placeholder="e.g. 10k"></div>
           <div class="form-group"><label>Speed</label><input type="text" id="eggSpeed" class="form-control" placeholder="e.g. 200"></div>
+        </div>
+      </div>
+
+      <div id="minecraftFields" style="display: none;">
+        <div class="section-title" style="font-size: 12px; border-left-color: #00e676; margin-bottom: 10px;">Minecraft Details</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Account Type / Access</label><input type="text" id="mcAccess" class="form-control" placeholder="e.g. Full Access / Email Changeable"></div>
+          <div class="form-group"><label>Platform</label><input type="text" id="mcPlatform" class="form-control" placeholder="e.g. Java & Bedrock / PC"></div>
+          <div class="form-group"><label>Rank / Stats</label><input type="text" id="mcRank" class="form-control" placeholder="e.g. MVP+ on Hypixel (Optional)"></div>
+          <div class="form-group"><label>Capes / Items</label><input type="text" id="mcCapes" class="form-control" placeholder="e.g. Migrator Cape, 19th Cape (Optional)"></div>
         </div>
       </div>
 
@@ -350,6 +361,7 @@
     document.getElementById('bloxFruitsFields').style.display = (game === 'Blox Fruits') ? 'block' : 'none';
     document.getElementById('brainrotFields').style.display = (game === 'Steal A Brainrot') ? 'block' : 'none';
     document.getElementById('eggFields').style.display = (game === 'Steal An Egg') ? 'block' : 'none';
+    document.getElementById('minecraftFields').style.display = (game === 'Minecraft') ? 'block' : 'none';
   }
 
   function calculateDiscountPreview() {
@@ -585,6 +597,11 @@
         newItem.money = document.getElementById('eggMoney').value.trim();
         newItem.moneyPerSecond = document.getElementById('eggMoneySec').value.trim();
         newItem.speed = document.getElementById('eggSpeed').value.trim();
+      } else if (game === 'Minecraft') {
+        newItem.mcAccess = document.getElementById('mcAccess').value.trim();
+        newItem.mcPlatform = document.getElementById('mcPlatform').value.trim();
+        newItem.mcRank = document.getElementById('mcRank').value.trim();
+        newItem.mcCapes = document.getElementById('mcCapes').value.trim();
       }
 
       if(editOriginalId) {
@@ -648,6 +665,11 @@
     document.getElementById('eggMoney').value = item.money || '';
     document.getElementById('eggMoneySec').value = item.moneyPerSecond || '';
     document.getElementById('eggSpeed').value = item.speed || '';
+
+    document.getElementById('mcAccess').value = item.mcAccess || '';
+    document.getElementById('mcPlatform').value = item.mcPlatform || '';
+    document.getElementById('mcRank').value = item.mcRank || '';
+    document.getElementById('mcCapes').value = item.mcCapes || '';
 
     calculateDiscountPreview();
 

@@ -237,6 +237,7 @@
       <button class="category-btn" onclick="selectCategory('steal an egg', this)">STEAL AN EGG (<span id="countEgg">0</span>)</button>
       <button class="category-btn" onclick="selectCategory('steal a brainrot', this)">STEAL A BRAINROT (<span id="countBrainrot">0</span>)</button>
       <button class="category-btn" onclick="selectCategory('blox fruits', this)">BLOX FRUITS (<span id="countBlox">0</span>)</button>
+      <button class="category-btn" onclick="selectCategory('minecraft', this)">MINECRAFT (<span id="countMinecraft">0</span>)</button>
     </div>
 
     <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
@@ -393,7 +394,7 @@
 
   async function loadSettings() {
     try {
-      const { data, error } = await supabaseClient
+      const { data } = await supabaseClient
         .from('settings')
         .select('value')
         .eq('key', 'site_announcement')
@@ -494,6 +495,12 @@
       fullDetailsHtml += detailRow("Race", accountObj.race);
       fullDetailsHtml += detailRow("Permanent Fruit", accountObj.permanentFruit);
       fullDetailsHtml += detailRow("Gamepass", accountObj.gamepass);
+    } else if(game === "minecraft"){
+      fullDetailsHtml += detailRow("Username", accountObj.account);
+      fullDetailsHtml += detailRow("Access", accountObj.mcAccess);
+      fullDetailsHtml += detailRow("Platform", accountObj.mcPlatform);
+      fullDetailsHtml += detailRow("Rank", accountObj.mcRank);
+      fullDetailsHtml += detailRow("Capes / Items", accountObj.mcCapes);
     }
 
     document.getElementById("modalDetailsContent").innerHTML = fullDetailsHtml || "<div style='color:#666;'>No extra details available.</div>";
@@ -695,6 +702,12 @@
       if(account.fightingStyle || account.race || account.permanentFruit || account.gamepass) {
         hasMoreDetails = true;
       }
+    } else if(game === "minecraft"){
+      details += detailRow("Access", account.mcAccess);
+      details += detailRow("Platform", account.mcPlatform);
+      if(account.mcRank || account.mcCapes) {
+        hasMoreDetails = true;
+      }
     }
 
     const newBadge = isNewAccount(account.date_added || account.dateAdded) ? `<span class="account-new-badge">🆕 NEW</span>` : "";
@@ -725,7 +738,7 @@
       </div>
     ` : "";
 
-    const viewAllBtnHtml = (hasMoreDetails || game === "blox fruits") ? `
+    const viewAllBtnHtml = (hasMoreDetails || game === "blox fruits" || game === "minecraft") ? `
       <button class="view-details-link" onclick='openDetailsModal(${JSON.stringify(account)})'>📄 View Full Details</button>
     ` : "";
 
@@ -799,6 +812,7 @@
     document.getElementById("countEgg").textContent = accounts.filter(a => normalizeGame(a.game) === "steal an egg").length;
     document.getElementById("countBrainrot").textContent = accounts.filter(a => normalizeGame(a.game) === "steal a brainrot").length;
     document.getElementById("countBlox").textContent = accounts.filter(a => normalizeGame(a.game) === "blox fruits").length;
+    document.getElementById("countMinecraft").textContent = accounts.filter(a => normalizeGame(a.game) === "minecraft").length;
   }
 
   function applyFilters(){
