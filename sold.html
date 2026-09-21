@@ -3,30 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sold History - Roblox Marketplace</title>
+<title>Sold History - Digital & Gaming Marketplace</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff0033' font-family='Arial, sans-serif' font-weight='900' font-size='75'>K</text></svg>">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
     --bg:#090909; --surface:#101010; --border:#202020; --text:#f5f5f5;
-    --muted:#8b8b8b; --green:#00d564; --green-light:#00e676; --orange:#e89a24;
+    --muted:#8b8b8b; --green:#00d564; --green-light:#00e676;
   }
-  body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 35px 22px 70px; }
-  .container { max-width: 1180px; margin: 0 auto; }
-  .back-link { display: inline-block; margin-bottom: 20px; color: var(--muted); text-decoration: none; font-size: 12px; font-weight: bold; transition: 0.2s; }
-  .back-link:hover { color: #fff; }
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: radial-gradient(circle at top center, rgba(0,213,100,.04), transparent 30%), var(--bg);
+    color: var(--text); min-height: 100vh; padding: 30px 20px;
+  }
+  .container { width: 100%; max-width: 1180px; margin: 0 auto; }
+  .back-link { display: inline-block; color: var(--green-light); font-size: 12px; font-weight: bold; text-decoration: none; margin-bottom: 25px; }
+  .back-link:hover { text-decoration: underline; }
   
-  .header { text-align: center; margin-bottom: 35px; }
-  .header h1 { color: var(--orange); font-size: 32px; font-weight: 900; margin-bottom: 8px; }
+  .header { text-align: center; margin-bottom: 40px; }
+  .header h1 { font-size: 32px; font-weight: 900; color: #fff; margin-bottom: 8px; text-transform: uppercase; }
   .header p { color: var(--muted); font-size: 13px; }
 
-  .account-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; }
-  .account-card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 13px; padding: 17px; transition: 0.2s; }
-  .account-card:hover { border-color: #333; transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+  .account-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 15px; }
   
+  .account-card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 13px; padding: 17px; display: flex; flex-direction: column; opacity: 0.85; }
   .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 9px; margin-bottom: 12px; }
   .game-badge { max-width: 70%; padding: 5px 8px; background: #181818; border: 1px solid #232323; border-radius: 999px; color: #8e8e8e; font-size: 9px; font-weight: 800; text-transform: uppercase; }
-  .sold-badge { display: inline-flex; padding: 5px 7px; border-radius: 999px; font-size: 8px; font-weight: 900; background: rgba(232,154,36,0.08); border: 1px solid rgba(232,154,36,0.25); color: var(--orange); }
+  .sold-out-badge { background: rgba(232,154,36,0.15); border: 1px solid rgba(232,154,36,0.3); color: #e89a24; padding: 5px 8px; border-radius: 999px; font-size: 8px; font-weight: 900; text-transform: uppercase; }
   
   .account-id-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
   .account-id-label { color: #5e5e5e; font-size: 8px; text-transform: uppercase; }
@@ -37,76 +40,41 @@
   .detail-label { color: #666; }
   .detail-value { color: #e8e8e8; text-align: right; font-weight: 700; word-break: break-all; }
 
-  .price-box { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px; background: #131313; border: 1px solid #202020; border-radius: 10px; margin-bottom: 10px; }
+  .price-box { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px; background: #131313; border: 1px solid #202020; border-radius: 10px; margin-bottom: 12px; margin-top: auto; }
   .price-label { color: #5d5d5d; font-size: 9px; font-weight: 800; }
-  .price-value { color: var(--orange); font-size: 19px; font-weight: 900; }
+  .price-value { color: #e89a24; font-size: 16px; font-weight: 900; }
 
-  .sold-notice { display: flex; justify-content: center; align-items: center; width: 100%; padding: 11px; border-radius: 9px; background: #181818; color: var(--orange); border: 1px solid #262626; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
+  .status-completed-bar { text-align: center; background: #161616; border: 1px solid #252525; padding: 10px; border-radius: 8px; font-size: 10px; font-weight: 900; color: #e89a24; text-transform: uppercase; }
 
-  /* Image Preview Modal */
-  .img-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 20px; }
-  .img-modal-box { position: relative; max-width: 90%; max-height: 90%; text-align: center; }
-  .img-modal-box img { max-width: 100%; max-height: 85vh; border-radius: 10px; border: 1px solid #333; object-fit: contain; }
-  .img-modal-close { position: absolute; top: -40px; right: 0; background: #222; border: none; color: #fff; width: 35px; height: 35px; border-radius: 50%; font-size: 18px; cursor: pointer; font-weight: bold; }
-  .img-modal-close:hover { background: #ff5f56; }
-  .clickable-thumb { cursor: pointer; transition: 0.2s; }
-  .clickable-thumb:hover { opacity: 0.85; transform: scale(1.02); }
-
-  .pagination-container { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 35px; flex-wrap: wrap; }
-  .page-btn { padding: 8px 12px; background: #141414; border: 1px solid var(--border); color: #aaa; font-size: 11px; font-weight: bold; border-radius: 8px; cursor: pointer; }
-  .page-btn:hover { background: #222; color: #fff; }
-  .page-btn.active { background: var(--orange); color: #000; border-color: var(--orange); font-weight: 900; }
-  .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  @media(max-width: 900px) { .account-grid { grid-template-columns: repeat(2,1fr); } }
-  @media(max-width: 640px) { .account-grid { grid-template-columns: 1fr; } }
+  @media(max-width: 900px) {
+    .account-grid { grid-template-columns: repeat(2,1fr); }
+  }
+  @media(max-width: 640px) {
+    .account-grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
 
 <div class="container">
   <a href="index.html" class="back-link">← Back to Marketplace</a>
+  
   <div class="header">
-    <h1>SOLD ITEMS HISTORY</h1>
+    <h1>Sold Items History</h1>
     <p>Listahan ng mga matagumpay na naibentang accounts at items.</p>
   </div>
 
-  <div id="soldGrid" class="account-grid">
-    <div style="grid-column: 1/-1; text-align: center; color: #666; font-size: 12px; padding: 40px;">Loading sold history...</div>
-  </div>
-
-  <div id="paginationContainer" class="pagination-container" style="display:none;"></div>
-</div>
-
-<!-- Image Zoom Modal -->
-<div id="imageModal" class="img-modal-overlay" onclick="closeImageModal()">
-  <div class="img-modal-box" onclick="event.stopPropagation()">
-    <button class="img-modal-close" onclick="closeImageModal()">×</button>
-    <img id="modalFullImage" src="" alt="Full Screenshot">
+  <div id="soldAccountGrid" class="account-grid">
+    <div style="color: #666; font-size: 12px; grid-column: 1/-1; text-align: center; padding: 30px;">Loading sold history...</div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const ITEMS_PER_PAGE = 20;
-  let currentPage = 1;
-  let soldList = [];
-
   const { createClient } = supabase;
   const supabaseUrl = 'https://ytrtivbepvpjbgdtuqrt.supabase.co';
   const supabaseKey = 'sb_publishable_qWOJctjWQouOqSzjek73pw_FYz7MbyS';
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
-
-  function openImageModal(url) {
-    const modal = document.getElementById("imageModal");
-    const modalImg = document.getElementById("modalFullImage");
-    modalImg.src = url;
-    modal.style.display = "flex";
-  }
-
-  function closeImageModal() {
-    document.getElementById("imageModal").style.display = "none";
-  }
 
   function normalizeGame(game){ return String(game || "").trim().toLowerCase().replace(/\s+/g, " "); }
 
@@ -125,11 +93,11 @@
     return String(value ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
   }
 
-  function createSoldCard(account){
+  function createSoldAccountCard(account){
     const game = normalizeGame(account.game);
     let details = "";
-    
-    // Ipinapakita ang ibang detalye pero tinatanggal/tinatalon ang 'Username' o 'account' field para sa privacy
+
+    // Sinadya nating HUWAG isama ang username dito para mapanatili ang privacy/konsepto mo
     if(game === "steal an egg"){
       details += detailRow("Money", account.money);
       details += detailRow("Money/s", account.moneyPerSecond);
@@ -139,23 +107,29 @@
       details += detailRow("Steals", account.steals);
       details += detailRow("Rebirth", account.rebirth);
       if(String(account.adminPanel).trim().toLowerCase() === "true") details += detailRow("🛠️ Admin Panel", "TRUE");
+      else if(String(account.adminPanel).trim().toLowerCase() === "false") details += detailRow("🛠️ Admin Panel", "FALSE");
     } else if(game === "blox fruits"){
       details += detailRow("Level", account.level);
       details += detailRow("Bounty", account.bounty);
       details += detailRow("Fruit", account.fruit);
       details += detailRow("Fighting Style", account.fightingStyle);
       details += detailRow("Race", account.race);
-      details += detailRow("Permanent Fruit", account.permanentFruit);
-      details += detailRow("Gamepass", account.gamepass);
+    } else if(game === "minecraft"){
+      details += detailRow("Access", account.mcAccess);
+      details += detailRow("Platform", account.mcPlatform);
+      details += detailRow("Rank", account.mcRank);
+      details += detailRow("Capes / Items", account.mcCapes);
+    } else if(game === "digital goods"){
+      details += detailRow("Platform", account.dgPlatform);
+      details += detailRow("Inclusions", account.dgInclusions);
     }
 
     const safeGame = escapeHTML(account.game || "Unknown Game");
     const safeId = escapeHTML(account.id || "N/A");
-    const safePrice = escapeHTML(formatPrice(account.price));
 
     const imageHtml = account.image_url ? `
-      <div style="margin-bottom: 12px; border-radius: 8px; overflow: hidden; height: 140px; background: #151515;" class="clickable-thumb" onclick="openImageModal('${escapeHTML(account.image_url)}')">
-        <img src="${escapeHTML(account.image_url)}" alt="Screenshot" style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.9);">
+      <div style="margin-bottom: 12px; border-radius: 8px; overflow: hidden; height: 140px; background: #151515;">
+        <img src="${escapeHTML(account.image_url)}" alt="Screenshot" style="width: 100%; height: 100%; object-fit: cover;">
       </div>
     ` : "";
 
@@ -164,7 +138,7 @@
         ${imageHtml}
         <div class="card-top">
           <span class="game-badge">${safeGame}</span>
-          <span class="sold-badge">SOLD OUT</span>
+          <span class="sold-out-badge">SOLD OUT</span>
         </div>
         <div class="account-id-row">
           <span class="account-id-label">ITEM / ACCOUNT ID</span>
@@ -173,66 +147,34 @@
         <div class="details-box">${details}</div>
         <div class="price-box">
           <span class="price-label">SOLD PRICE</span>
-          <span class="price-value">${safePrice}</span>
+          <span class="price-value">${escapeHTML(formatPrice(account.price))}</span>
         </div>
-        <div class="sold-notice">🔒 TRANSACTION COMPLETED</div>
+        <div class="status-completed-bar">🔒 Transaction Completed</div>
       </div>
     `;
   }
 
-  async function loadSoldItems() {
-    const grid = document.getElementById('soldGrid');
+  async function loadSoldAccounts(){
+    const grid = document.getElementById("soldAccountGrid");
     try {
-      const { data, error } = await supabaseClient.from('accounts').select('*').eq('status', 'Sold').order('id', { ascending: false });
+      const { data, error } = await supabaseClient.from('accounts').select('*');
       if(error) throw error;
 
-      if(!data || data.length === 0) {
-        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #666; padding: 40px; font-size: 12px;">No sold items found yet.</div>`;
+      const soldList = (data || []).filter(acc => String(acc.status).toLowerCase() === "sold");
+
+      if(soldList.length === 0){
+        grid.innerHTML = `<div style="color: #666; font-size: 12px; grid-column: 1/-1; text-align: center; padding: 30px;">Wala pang naibentang item sa ngayon.</div>`;
         return;
       }
 
-      soldList = data;
-      renderSoldPage();
+      grid.innerHTML = soldList.map(createSoldAccountCard).join("");
     } catch(err) {
       console.error(err);
-      grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #ff5f56; font-size: 12px; padding: 40px;">Error loading sold history.</div>`;
+      grid.innerHTML = `<div style="color: #ff5f56; font-size: 12px; grid-column: 1/-1; text-align: center; padding: 30px;">May error sa pag-load ng sold history.</div>`;
     }
   }
 
-  function renderSoldPage() {
-    const grid = document.getElementById('soldGrid');
-    const paginationContainer = document.getElementById('paginationContainer');
-    
-    const totalPages = Math.ceil(soldList.length / ITEMS_PER_PAGE);
-    if(currentPage > totalPages) currentPage = totalPages || 1;
-
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const visibleList = soldList.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-    grid.innerHTML = visibleList.map(createSoldCard).join('');
-
-    if(totalPages > 1){
-      paginationContainer.style.display = "flex";
-      let html = `<button class="page-btn" onclick="changePage(1)" ${currentPage === 1 ? 'disabled' : ''}>First</button>`;
-      for(let i = 1; i <= totalPages; i++) {
-        if(i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-          html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
-        }
-      }
-      html += `<button class="page-btn" onclick="changePage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>Last</button>`;
-      paginationContainer.innerHTML = html;
-    } else {
-      paginationContainer.style.display = "none";
-    }
-  }
-
-  function changePage(page) {
-    currentPage = page;
-    renderSoldPage();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  loadSoldItems();
+  loadSoldAccounts();
 </script>
 </body>
 </html>
