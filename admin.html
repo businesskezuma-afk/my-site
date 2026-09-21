@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Panel - Roblox Marketplace</title>
+<title>Admin Panel - Digital & Gaming Marketplace</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff0033' font-family='Arial, sans-serif' font-weight='900' font-size='75'>K</text></svg>">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
@@ -129,12 +129,13 @@
       <input type="hidden" id="existingImageUrl">
       <div class="form-grid">
         <div class="form-group">
-          <label>Game Category</label>
+          <label>Category / Game</label>
           <select id="itemGame" class="form-control" onchange="toggleGameFields()" required>
             <option value="Blox Fruits">Blox Fruits</option>
             <option value="Steal A Brainrot">Steal A Brainrot</option>
             <option value="Steal An Egg">Steal An Egg</option>
             <option value="Minecraft">Minecraft</option>
+            <option value="Digital Goods">Digital Goods / Accounts</option>
           </select>
         </div>
         <div class="form-group">
@@ -143,7 +144,7 @@
         </div>
         <div class="form-group">
           <label>Username / Title</label>
-          <input type="text" id="itemAccount" class="form-control" placeholder="Roblox Username or Title">
+          <input type="text" id="itemAccount" class="form-control" placeholder="Username, Email, or Title">
         </div>
         <div class="form-group">
           <label>Original / Normal Price (PHP)</label>
@@ -217,6 +218,14 @@
         </div>
       </div>
 
+      <div id="digitalGoodsFields" style="display: none;">
+        <div class="section-title" style="font-size: 12px; border-left-color: #00e676; margin-bottom: 10px;">Digital Goods / Accounts Details</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Platform / Service</label><input type="text" id="dgPlatform" class="form-control" placeholder="e.g. Netflix, TikTok, Spotify"></div>
+          <div class="form-group"><label>Inclusions / Subscription</label><input type="text" id="dgInclusions" class="form-control" placeholder="e.g. 1 Month UHD / 10k Followers"></div>
+        </div>
+      </div>
+
       <div style="display: flex; gap: 10px; margin-top: 10px;">
         <button type="submit" class="btn primary" id="publishBtn">PUBLISH LISTING</button>
         <button type="button" class="btn" id="cancelEditBtn" style="display:none;" onclick="resetForm()">Cancel Edit</button>
@@ -253,7 +262,7 @@
         <thead>
           <tr>
             <th>ID</th>
-            <th>Game</th>
+            <th>Category</th>
             <th>Type</th>
             <th>Price / Discount</th>
             <th>Status</th>
@@ -362,6 +371,7 @@
     document.getElementById('brainrotFields').style.display = (game === 'Steal A Brainrot') ? 'block' : 'none';
     document.getElementById('eggFields').style.display = (game === 'Steal An Egg') ? 'block' : 'none';
     document.getElementById('minecraftFields').style.display = (game === 'Minecraft') ? 'block' : 'none';
+    document.getElementById('digitalGoodsFields').style.display = (game === 'Digital Goods') ? 'block' : 'none';
   }
 
   function calculateDiscountPreview() {
@@ -602,6 +612,9 @@
         newItem.mcPlatform = document.getElementById('mcPlatform').value.trim();
         newItem.mcRank = document.getElementById('mcRank').value.trim();
         newItem.mcCapes = document.getElementById('mcCapes').value.trim();
+      } else if (game === 'Digital Goods') {
+        newItem.dgPlatform = document.getElementById('dgPlatform').value.trim();
+        newItem.dgInclusions = document.getElementById('dgInclusions').value.trim();
       }
 
       if(editOriginalId) {
@@ -670,6 +683,9 @@
     document.getElementById('mcPlatform').value = item.mcPlatform || '';
     document.getElementById('mcRank').value = item.mcRank || '';
     document.getElementById('mcCapes').value = item.mcCapes || '';
+
+    document.getElementById('dgPlatform').value = item.dgPlatform || '';
+    document.getElementById('dgInclusions').value = item.dgInclusions || '';
 
     calculateDiscountPreview();
 

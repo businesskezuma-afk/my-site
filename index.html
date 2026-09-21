@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Roblox Marketplace - Trusted Accounts & Items</title>
+<title>Roblox & Digital Marketplace - Trusted Accounts & Items</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff0033' font-family='Arial, sans-serif' font-weight='900' font-size='75'>K</text></svg>">
 
-<meta property="og:title" content="Roblox Marketplace - Trusted Accounts & Items">
-<meta property="og:description" content="Find available Roblox accounts and items quickly and easily. 100% Legit & Trusted!">
+<meta property="og:title" content="Roblox & Digital Marketplace - Trusted Accounts & Items">
+<meta property="og:description" content="Find available Roblox, Minecraft, and Digital Accounts quickly and easily. 100% Legit & Trusted!">
 <meta property="og:image" content="https://i.imgur.com/LvtMePH.jpeg">
 <meta property="og:url" content="https://kezrblx.vercel.app">
 <meta property="og:type" content="website">
@@ -204,8 +204,8 @@
 
 <div class="container">
   <div class="header">
-    <h1>ROBLOX <span>MARKETPLACE</span></h1>
-    <p>Find available Roblox accounts and items quickly and easily.</p>
+    <h1>DIGITAL & GAMING <span>MARKETPLACE</span></h1>
+    <p>Find available Roblox, Minecraft, and Digital Accounts quickly and easily.</p>
     <div class="status-badges-row">
       <div id="onlineBadgeContainer" class="online-badge">
         <span id="onlineDot" class="online-dot"></span>
@@ -222,22 +222,23 @@
   <div class="search-section">
     <div class="search-row">
       <div class="search-box">
-        <input type="text" id="searchInput" class="search-input" placeholder="Search account, item, game, price, admin, fruit, level..." autocomplete="off" oninput="handleSearchInput()">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search account, item, game, netflix, tiktok, price..." autocomplete="off" oninput="handleSearchInput()">
         <button id="clearButton" class="clear-btn" onclick="clearSearch()">×</button>
         <div id="suggestionsDropdown" class="suggestions-dropdown"></div>
       </div>
       <button class="search-btn" onclick="searchAccounts()">🔎 SEARCH</button>
     </div>
-    <div class="search-hint">Try: brainrot • admin • 1500 • 1.5k • 5M • fruit • level</div>
+    <div class="search-hint">Try: brainrot • admin • netflix • tiktok • minecraft • fruit</div>
   </div>
 
   <div class="controls-row">
     <div class="category-buttons" id="categoryButtonsContainer">
-      <button class="category-btn active" onclick="selectCategory('all', this)">ALL GAMES (<span id="countAll">0</span>)</button>
+      <button class="category-btn active" onclick="selectCategory('all', this)">ALL (<span id="countAll">0</span>)</button>
       <button class="category-btn" onclick="selectCategory('steal an egg', this)">STEAL AN EGG (<span id="countEgg">0</span>)</button>
       <button class="category-btn" onclick="selectCategory('steal a brainrot', this)">STEAL A BRAINROT (<span id="countBrainrot">0</span>)</button>
       <button class="category-btn" onclick="selectCategory('blox fruits', this)">BLOX FRUITS (<span id="countBlox">0</span>)</button>
       <button class="category-btn" onclick="selectCategory('minecraft', this)">MINECRAFT (<span id="countMinecraft">0</span>)</button>
+      <button class="category-btn" onclick="selectCategory('digital goods', this)">DIGITAL GOODS (<span id="countDigital">0</span>)</button>
     </div>
 
     <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
@@ -501,6 +502,10 @@
       fullDetailsHtml += detailRow("Platform", accountObj.mcPlatform);
       fullDetailsHtml += detailRow("Rank", accountObj.mcRank);
       fullDetailsHtml += detailRow("Capes / Items", accountObj.mcCapes);
+    } else if(game === "digital goods"){
+      fullDetailsHtml += detailRow("Platform / Service", accountObj.dgPlatform);
+      fullDetailsHtml += detailRow("Inclusions / Details", accountObj.dgInclusions);
+      fullDetailsHtml += detailRow("Account Info", accountObj.account);
     }
 
     document.getElementById("modalDetailsContent").innerHTML = fullDetailsHtml || "<div style='color:#666;'>No extra details available.</div>";
@@ -632,7 +637,8 @@
       const accMatch = String(acc.account || "").toLowerCase().includes(val);
       const gameMatch = String(acc.game || "").toLowerCase().includes(val);
       const fruitMatch = String(acc.fruit || "").toLowerCase().includes(val);
-      return idMatch || accMatch || gameMatch || fruitMatch;
+      const dgMatch = String(acc.dgPlatform || "").toLowerCase().includes(val);
+      return idMatch || accMatch || gameMatch || fruitMatch || dgMatch;
     }).slice(0, 5);
 
     if(matches.length === 0) {
@@ -642,7 +648,7 @@
 
     dropdown.innerHTML = matches.map(m => `
       <div class="suggestion-item" onclick="selectSuggestion('${escapeHTML(m.id)}')">
-        <div><b>${escapeHTML(m.id)}</b> - ${escapeHTML(m.account || m.game)}</div>
+        <div><b>${escapeHTML(m.id)}</b> - ${escapeHTML(m.account || m.dgPlatform || m.game)}</div>
         <span>${escapeHTML(m.game)}</span>
       </div>
     `).join('');
@@ -708,6 +714,10 @@
       if(account.mcRank || account.mcCapes) {
         hasMoreDetails = true;
       }
+    } else if(game === "digital goods"){
+      details += detailRow("Platform", account.dgPlatform);
+      details += detailRow("Inclusions", account.dgInclusions);
+      if(account.account) hasMoreDetails = true;
     }
 
     const newBadge = isNewAccount(account.date_added || account.dateAdded) ? `<span class="account-new-badge">🆕 NEW</span>` : "";
@@ -738,7 +748,7 @@
       </div>
     ` : "";
 
-    const viewAllBtnHtml = (hasMoreDetails || game === "blox fruits" || game === "minecraft") ? `
+    const viewAllBtnHtml = (hasMoreDetails || game === "blox fruits" || game === "minecraft" || game === "digital goods") ? `
       <button class="view-details-link" onclick='openDetailsModal(${JSON.stringify(account)})'>📄 View Full Details</button>
     ` : "";
 
@@ -813,6 +823,7 @@
     document.getElementById("countBrainrot").textContent = accounts.filter(a => normalizeGame(a.game) === "steal a brainrot").length;
     document.getElementById("countBlox").textContent = accounts.filter(a => normalizeGame(a.game) === "blox fruits").length;
     document.getElementById("countMinecraft").textContent = accounts.filter(a => normalizeGame(a.game) === "minecraft").length;
+    document.getElementById("countDigital").textContent = accounts.filter(a => normalizeGame(a.game) === "digital goods").length;
   }
 
   function applyFilters(){
