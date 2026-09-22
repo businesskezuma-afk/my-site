@@ -150,7 +150,6 @@
         return;
       }
 
-      // 🔒 I-check muna kung Completed na ang status sa orders table
       const orderStatus = String(orderData.status || "").trim().toLowerCase();
       if(orderStatus !== 'completed') {
         box.style.display = 'block';
@@ -211,11 +210,22 @@
         order_code: order.order_id || document.getElementById('vouchOrderCode').value.trim(),
         rating: parseInt(document.getElementById('vouchRating').value),
         feedback: document.getElementById('vouchFeedback').value.trim(),
-        image_url: item.image_url || null,
+        image_url: item.image_url || item.imageUrl || null,
         price: order.price || item.price || 0,
-        money: item.money || null,
-        money_per_second: item.moneyPerSecond || null,
-        speed: item.speed || null,
+        money: item.money || item.Money || null,
+        money_per_second: item.money_per_second || item.moneyPerSecond || null,
+        speed: item.speed || item.Speed || null,
+        steals: item.steals || item.Steals || null,
+        rebirth: item.rebirth || item.Rebirth || null,
+        level: item.level || item.Level || null,
+        bounty: item.bounty || item.Bounty || null,
+        fruit: item.fruit || item.Fruit || null,
+        fighting_style: item.fighting_style || item.fightingStyle || null,
+        race: item.race || item.Race || null,
+        mc_access: item.mc_access || item.mcAccess || null,
+        mc_platform: item.mc_platform || item.mcPlatform || null,
+        mc_rank: item.mc_rank || item.mcRank || null,
+        mc_capes: item.mc_capes || item.mcCapes || null,
         status: 'Pending',
         date_added: new Date().toISOString().split('T')[0]
       };
