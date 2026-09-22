@@ -35,7 +35,7 @@
   .success-msg h3 { color: #00d564; font-size: 18px; margin-bottom: 8px; font-weight: 900; }
   .success-msg p { color: #aaa; font-size: 12px; margin-bottom: 15px; }
 
-  .preview-box { background: #141414; border: 1px solid #222; border-radius: 8px; padding: 10px; margin-top: 8px; display: none; font-size: 11px; color: #00d564; text-align: left; }
+  .preview-box { background: #141414; border: 1px solid #222; border-radius: 8px; padding: 10px; margin-top: 8px; display: none; font-size: 11px; text-align: left; }
 </style>
 </head>
 <body>
@@ -150,6 +150,16 @@
         return;
       }
 
+      // 🔒 I-check muna kung Completed na ang status sa orders table
+      const orderStatus = String(orderData.status || "").trim().toLowerCase();
+      if(orderStatus !== 'completed') {
+        box.style.display = 'block';
+        box.style.color = '#ff5f56';
+        box.textContent = `❌ Hindi pa tapos ang transaksyon (Status: ${orderData.status}). Kailangang 'Completed' muna bago makapag-vouch.`;
+        verifiedOrderData = null;
+        return;
+      }
+
       const { data: itemData } = await supabaseClient
         .from('accounts')
         .select('*')
@@ -163,7 +173,7 @@
 
       box.style.display = 'block';
       box.style.color = '#00d564';
-      box.textContent = `✅ Verified! Item ID: ${orderData.item_id} (₱${orderData.price})`;
+      box.textContent = `✅ Verified & Completed! Item ID: ${orderData.item_id} (₱${orderData.price})`;
       
       if(orderData.game) {
         for(let i = 0; i < gameSelect.options.length; i++) {
@@ -182,7 +192,7 @@
   async function submitVouch(e) {
     e.preventDefault();
     if(!verifiedOrderData) {
-      alert("Mangyaring maglagay ng valid at umiiral na Order Code.");
+      alert("Mangyaring maglagay ng valid at 'Completed' na Order Code.");
       return;
     }
 
