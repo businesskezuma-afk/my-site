@@ -54,7 +54,7 @@
   <a href="index.html" class="back-link">← Back to Marketplace</a>
   <div class="header">
     <h1>All Customer Reviews</h1>
-    <p>Lahat ng aprubadong vouch mula sa ating mga customers kasama ang detalye ng binili.</p>
+    <p>All approved vouches from our customers along with the purchased item details.</p>
   </div>
 
   <div id="reviewsGrid" class="reviews-grid">
@@ -91,7 +91,7 @@
       if (error) throw error;
 
       if (!data || data.length === 0) {
-        grid.innerHTML = `<div style="color: #666; font-size: 12px; grid-column: 1/-1; text-align: center; padding: 40px;">Wala pang mga review o vouch na naka-publish.</div>`;
+        grid.innerHTML = `<div style="color: #666; font-size: 12px; grid-column: 1/-1; text-align: center; padding: 40px;">No published reviews or vouches yet.</div>`;
         return;
       }
 
@@ -103,6 +103,7 @@
         if (v.speed) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Speed</span><span class="snapshot-detail-value">${escapeHTML(v.speed)}</span></div>`;
         if (v.steals) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Steals</span><span class="snapshot-detail-value">${escapeHTML(v.steals)}</span></div>`;
         if (v.rebirth) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Rebirth</span><span class="snapshot-detail-value">${escapeHTML(v.rebirth)}</span></div>`;
+        if (v.admin_panel) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Admin Panel</span><span class="snapshot-detail-value">${escapeHTML(v.admin_panel)}</span></div>`;
         if (v.level) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Level</span><span class="snapshot-detail-value">${escapeHTML(v.level)}</span></div>`;
         if (v.bounty) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Bounty</span><span class="snapshot-detail-value">${escapeHTML(v.bounty)}</span></div>`;
         if (v.fruit) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Fruit</span><span class="snapshot-detail-value">${escapeHTML(v.fruit)}</span></div>`;
