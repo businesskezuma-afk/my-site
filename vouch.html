@@ -92,9 +92,9 @@
   </div>
 
   <div id="successContainer" class="success-msg">
-    <h3>Salamat sa iyong Vouch! 🎉</h3>
-    <p>Matagumpay na naisumite ang iyong verified review.</p>
-    <a href="index.html" class="submit-btn" style="display: block; text-decoration: none; text-align: center; line-height: normal;">BALIK SA MARKETPLACE</a>
+    <h3>Thank you for your Vouch! 🎉</h3>
+    <p>Your verified review has been successfully submitted.</p>
+    <a href="index.html" class="submit-btn" style="display: block; text-decoration: none; text-align: center; line-height: normal;">BACK TO MARKETPLACE</a>
   </div>
 
   <div>
@@ -145,7 +145,7 @@
       if(orderError || !orderData) {
         box.style.display = 'block';
         box.style.color = '#ff5f56';
-        box.textContent = '❌ Walang nahanap na Order Code na ito.';
+        box.textContent = '❌ No order found with this code.';
         verifiedOrderData = null;
         return;
       }
@@ -154,7 +154,7 @@
       if(orderStatus !== 'completed') {
         box.style.display = 'block';
         box.style.color = '#ff5f56';
-        box.textContent = `❌ Hindi pa tapos ang transaksyon (Status: ${orderData.status}). Kailangang 'Completed' muna bago makapag-vouch.`;
+        box.textContent = `❌ Transaction is not yet completed (Status: ${orderData.status}). Must be 'Completed' before submitting a vouch.`;
         verifiedOrderData = null;
         return;
       }
@@ -191,7 +191,7 @@
   async function submitVouch(e) {
     e.preventDefault();
     if(!verifiedOrderData) {
-      alert("Mangyaring maglagay ng valid at 'Completed' na Order Code.");
+      alert("Please enter a valid and 'Completed' Order Code.");
       return;
     }
 
