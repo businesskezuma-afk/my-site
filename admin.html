@@ -440,8 +440,8 @@
       }
 
       const actionButtons = (dbStatus !== 'completed' && dbStatus !== 'cancelled') 
-        ? `<button class="btn primary" style="padding: 4px 8px; font-size: 10px; position: relative; z-index: 10;" onclick="updateOrderStatus('${escapeHTML(o.order_id)}', 'Completed')">Complete</button>
-           <button class="btn danger" style="padding: 4px 8px; font-size: 10px; position: relative; z-index: 10; margin-left: 5px;" onclick="updateOrderStatus('${escapeHTML(o.order_id)}', 'Cancelled')">Cancel</button>` 
+        ? `<button class="btn primary" style="padding: 4px 8px; font-size: 10px; position: relative; z-index: 10;" onclick="updateOrderStatus('${escapeHTML(o.order_id)}', 'Completed', '${escapeHTML(o.item_id || '')}')">Complete</button>
+           <button class="btn danger" style="padding: 4px 8px; font-size: 10px; position: relative; z-index: 10; margin-left: 5px;" onclick="updateOrderStatus('${escapeHTML(o.order_id)}', 'Cancelled', '${escapeHTML(o.item_id || '')}')">Cancel</button>` 
         : `<span style="font-size: 10px; color: #555;">No Actions Available</span>`;
 
       return `
@@ -469,11 +469,25 @@
     renderOrdersTable(filtered);
   }
 
-  async function updateOrderStatus(orderId, newStatus) {
+  async function updateOrderStatus(orderId, newStatus, itemId) {
     try {
       const { error } = await supabaseClient.from('orders').update({ status: newStatus }).eq('order_id', orderId);
       if(error) throw error;
+
+      // 🔒 Awtomatikong gawing 'Sold' ang item sa inventory kapag na-complete ang order
+      if (newStatus === 'Completed' && itemId && itemId !== 'N/A') {
+        const { error: accountError } = await supabaseClient
+          .from('accounts')
+          .update({ status: 'Sold' })
+          .eq('id', itemId);
+
+        if (accountError) {
+          console.error("Error updating inventory status:", accountError.message);
+        }
+      }
+
       loadOrdersAdmin();
+      loadInventoryAdmin();
     } catch(err) {
       alert('Error updating order: ' + err.message);
     }
@@ -783,7 +797,6 @@
     return String(value ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
   }
 
-  // Mag-a-auto refresh ang admin data tuwing 30 seconds
   setInterval(() => {
     if(supabaseClient.auth.getSession()) {
       loadOrdersAdmin();
