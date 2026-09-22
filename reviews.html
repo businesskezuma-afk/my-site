@@ -3,31 +3,49 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>All Customer Reviews - Roblox Marketplace</title>
+<title>All Customer Reviews - Kezrblx Marketplace</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff0033' font-family='Arial, sans-serif' font-weight='900' font-size='75'>K</text></svg>">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-  body { background: #090909; color: #f5f5f5; min-height: 100vh; padding: 20px; }
+  body { background: #090909; color: #f5f5f5; min-height: 100vh; padding: 30px 20px; }
   .container { max-width: 1100px; margin: 0 auto; }
-  .header { text-align: center; margin-bottom: 25px; }
-  .header h1 { color: #00d564; font-size: 24px; font-weight: 900; }
-  .vouches-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  .vouch-card { background: #101010; border: 1px solid #202020; border-radius: 11px; padding: 15px; }
-  .vouch-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .vouch-name { font-size: 12px; font-weight: 900; color: #fff; }
-  .vouch-stars { color: #ffbd2e; font-size: 11px; }
-  .vouch-feedback { font-size: 11px; color: #aaa; line-height: 1.5; margin-bottom: 8px; }
-  .vouch-game { font-size: 8px; color: #666; text-transform: uppercase; font-weight: bold; }
+  .back-link { display: inline-block; color: #00e676; font-size: 11px; font-weight: bold; text-decoration: none; margin-bottom: 25px; }
+  .back-link:hover { text-decoration: underline; }
   
-  .pagination-container { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 30px; }
-  .page-btn { padding: 8px 12px; background: #141414; border: 1px solid #292929; color: #aaa; border-radius: 8px; cursor: pointer; font-size: 11px; }
-  .page-btn.active { background: #00d564; color: #000; font-weight: bold; }
-  .page-btn:disabled { opacity: 0.4; }
-  .back-link { display: inline-block; margin-bottom: 20px; color: #888; text-decoration: none; font-size: 12px; }
-  .back-link:hover { color: #fff; }
+  .header { text-align: center; margin-bottom: 35px; }
+  .header h1 { color: #00d564; font-size: 24px; font-weight: 900; margin-bottom: 5px; text-transform: uppercase; }
+  .header p { color: #888; font-size: 12px; }
 
-  @media(max-width: 900px) { .vouches-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media(max-width: 640px) { .vouches-grid { grid-template-columns: 1fr; } }
+  .reviews-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+
+  .vouch-card { background: #101010; border: 1px solid #202020; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 8px 25px rgba(0,0,0,0.6); }
+  
+  .item-snapshot { background: #141414; border: 1px solid #222; border-radius: 10px; padding: 12px; margin-bottom: 14px; }
+  .item-snapshot img { width: 100%; height: 130px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; background: #181818; }
+  
+  .snapshot-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .game-pill { font-size: 9px; color: #888; font-weight: 900; text-transform: uppercase; background: #1c1c1c; padding: 4px 8px; border-radius: 999px; border: 1px solid #282828; }
+  .sold-pill { font-size: 8px; color: #e89a24; font-weight: 900; background: rgba(232,154,36,0.1); padding: 4px 8px; border-radius: 999px; border: 1px solid rgba(232,154,36,0.25); text-transform: uppercase; }
+
+  .snapshot-id-label { font-size: 8px; color: #555; text-transform: uppercase; margin-top: 4px; }
+  .snapshot-id { font-size: 15px; font-weight: 900; color: #fff; margin-bottom: 8px; }
+
+  .snapshot-detail-row { display: flex; justify-content: space-between; font-size: 11px; padding: 4px 0; border-bottom: 1px solid #1a1a1a; }
+  .snapshot-detail-label { color: #666; }
+  .snapshot-detail-value { color: #ddd; font-weight: bold; }
+
+  .price-row-box { display: flex; justify-content: space-between; align-items: center; background: #121212; border: 1px solid #1f1f1f; padding: 8px 10px; border-radius: 8px; margin-top: 10px; }
+  .price-label-text { font-size: 9px; color: #666; font-weight: bold; text-transform: uppercase; }
+  .price-value-text { font-size: 14px; color: #00d564; font-weight: 900; }
+
+  .completed-pill { text-align: center; background: rgba(0,213,100,0.06); border: 1px solid rgba(0,213,100,0.2); color: #00e676; font-size: 9px; font-weight: 900; padding: 6px; border-radius: 8px; margin-top: 8px; text-transform: uppercase; }
+
+  .customer-feedback-section { background: #151515; border: 1px solid #222; border-radius: 10px; padding: 12px; margin-top: auto; }
+  .feedback-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .customer-name { font-size: 12px; font-weight: 900; color: #fff; }
+  .stars { color: #ffbd2e; font-size: 11px; }
+  .feedback-text { font-size: 11px; color: #aaa; line-height: 1.4; word-break: break-word; font-style: italic; }
+  .feedback-date { font-size: 9px; color: #555; text-align: right; margin-top: 6px; }
 </style>
 </head>
 <body>
@@ -35,89 +53,93 @@
 <div class="container">
   <a href="index.html" class="back-link">← Back to Marketplace</a>
   <div class="header">
-    <h1>ALL CUSTOMER REVIEWS</h1>
-    <p style="color: #777; font-size: 12px;">Lahat ng aprubadong vouch mula sa ating mga customers.</p>
+    <h1>All Customer Reviews</h1>
+    <p>Lahat ng aprubadong vouch mula sa ating mga customers kasama ang detalye ng binili.</p>
   </div>
 
-  <div id="reviewsGrid" class="vouches-grid">
-    <div style="color: #666; font-size: 11px;">Loading reviews...</div>
+  <div id="reviewsGrid" class="reviews-grid">
+    <div style="color: #666; font-size: 12px; grid-column: 1/-1; text-align: center; padding: 40px;">Loading reviews...</div>
   </div>
-
-  <div id="paginationContainer" class="pagination-container" style="display:none;"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const ITEMS_PER_PAGE = 20; // 20 reviews bawat page
-  let currentPage = 1;
-  let reviewsList = [];
-
   const { createClient } = supabase;
   const supabaseUrl = 'https://ytrtivbepvpjbgdtuqrt.supabase.co';
   const supabaseKey = 'sb_publishable_qWOJctjWQouOqSzjek73pw_FYz7MbyS';
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
+  function escapeHTML(value){
+    return String(value ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+  }
+
+  function formatPrice(price){
+    let value = String(price || "").replace(/₱/g,"").replace(/,/g,"");
+    const number = parseFloat(value.replace(/[^0-9.-]/g, ""));
+    return isNaN(number) ? "₱0" : "₱" + number.toLocaleString("en-PH");
+  }
+
   async function loadAllReviews() {
     const grid = document.getElementById('reviewsGrid');
     try {
-      const { data, error } = await supabaseClient.from('vouches').select('*').eq('status', 'Approved').order('date_added', { ascending: false });
-      if(error) throw error;
+      const { data, error } = await supabaseClient
+        .from('vouches')
+        .select('*')
+        .eq('status', 'Approved')
+        .order('date_added', { ascending: false });
 
-      if(!data || data.length === 0) {
-        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #666; padding: 30px;">No reviews found yet.</div>`;
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        grid.innerHTML = `<div style="color: #666; font-size: 12px; grid-column: 1/-1; text-align: center; padding: 40px;">Wala pang mga review o vouch na naka-publish.</div>`;
         return;
       }
 
-      reviewsList = data;
-      renderReviewsPage();
-    } catch(err) {
-      grid.innerHTML = `<div style="color: #ff5f56;">Error loading reviews.</div>`;
-    }
-  }
+      grid.innerHTML = data.map(v => {
+        let detailsHtml = '';
+        if (v.money) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Money</span><span class="snapshot-detail-value">${escapeHTML(v.money)}</span></div>`;
+        if (v.money_per_second) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Money/s</span><span class="snapshot-detail-value">${escapeHTML(v.money_per_second)}</span></div>`;
+        if (v.speed) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Speed</span><span class="snapshot-detail-value">${escapeHTML(v.speed)}</span></div>`;
 
-  function renderReviewsPage() {
-    const grid = document.getElementById('reviewsGrid');
-    const paginationContainer = document.getElementById('paginationContainer');
-    
-    const totalPages = Math.ceil(reviewsList.length / ITEMS_PER_PAGE);
-    if(currentPage > totalPages) currentPage = totalPages || 1;
+        const imageTag = v.image_url ? `<img src="${escapeHTML(v.image_url)}" alt="Item Screenshot">` : '';
+        const priceText = formatPrice(v.price);
+        const itemIdText = v.item_id ? escapeHTML(v.item_id) : 'N/A';
 
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const visibleList = reviewsList.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+        return `
+          <div class="vouch-card">
+            <div>
+              <div class="item-snapshot">
+                ${imageTag}
+                <div class="snapshot-top">
+                  <span class="game-pill">${escapeHTML(v.game || 'General')}</span>
+                  <span class="sold-pill">SOLD OUT</span>
+                </div>
+                <div class="snapshot-id-label">Item / Account ID</div>
+                <div class="snapshot-id">${itemIdText}</div>
+                ${detailsHtml}
+                <div class="price-row-box">
+                  <span class="price-label-text">Sold Price</span>
+                  <span class="price-value-text">${priceText}</span>
+                </div>
+                <div class="completed-pill">🔒 Transaction Completed</div>
+              </div>
+            </div>
 
-    grid.innerHTML = visibleList.map(v => {
-      const stars = "★".repeat(v.rating) + "☆".repeat(5 - v.rating);
-      return `
-        <div class="vouch-card">
-          <div class="vouch-header">
-            <span class="vouch-name">${v.customer_name}</span>
-            <span class="vouch-stars">${stars}</span>
+            <div class="customer-feedback-section">
+              <div class="feedback-header">
+                <span class="customer-name">${escapeHTML(v.customer_name)}</span>
+                <span class="stars">${'★'.repeat(Number(v.rating) || 5)}</span>
+              </div>
+              <div class="feedback-text">"${escapeHTML(v.feedback)}"</div>
+              <div class="feedback-date">${escapeHTML(v.date_added || '')}</div>
+            </div>
           </div>
-          <div class="vouch-feedback">"${v.feedback}"</div>
-          <div class="vouch-game">${v.game} • ${v.date_added || ''}</div>
-        </div>
-      `;
-    }).join('');
-
-    if(totalPages > 1){
-      paginationContainer.style.display = "flex";
-      let html = `<button class="page-btn" onclick="changePage(1)" ${currentPage === 1 ? 'disabled' : ''}>First</button>`;
-      for(let i = 1; i <= totalPages; i++) {
-        if(i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-          html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
-        }
-      }
-      html += `<button class="page-btn" onclick="changePage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>Last</button>`;
-      paginationContainer.innerHTML = html;
-    } else {
-      paginationContainer.style.display = "none";
+        `;
+      }).join('');
+    } catch (err) {
+      console.error(err);
+      grid.innerHTML = `<div style="color: #ff5f56; font-size: 12px; grid-column: 1/-1; text-align: center; padding: 40px;">Error loading reviews.</div>`;
     }
-  }
-
-  function changePage(page) {
-    currentPage = page;
-    renderReviewsPage();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   loadAllReviews();
