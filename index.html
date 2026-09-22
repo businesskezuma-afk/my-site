@@ -174,7 +174,9 @@
   .facebook-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
   .facebook-btn { display: inline-flex; align-items: center; justify-content: center; padding: 9px 12px; border-radius: 8px; background: #161616; border: 1px solid #252525; color: #aaa; text-decoration: none; font-size: 9px; font-weight: 800; }
   .facebook-btn:hover { border-color: #333; color: #fff; }
-  .tos-link-btn { background: none; border: none; color: #00d564; font-size: 10px; font-weight: bold; cursor: pointer; text-decoration: underline; margin-top: 10px; padding: 0; }
+
+  /* Footer Copyright Style */
+  .site-footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #1c1c1c; color: #555; font-size: 11px; font-weight: bold; }
 
   .empty-state { grid-column: 1/-1; text-align: center; padding: 45px 20px; border: 1px dashed #242424; border-radius: 12px; color: #666; }
   .empty-state-title { color: #aaa; font-size: 15px; font-weight: 900; margin-bottom: 5px; }
@@ -298,6 +300,11 @@
       TOTAL VISITORS
       <span id="visitorCount" class="visitor-count-number">----</span>
     </div>
+  </div>
+
+  <!-- Footer Copyright -->
+  <div class="site-footer">
+    © 2026 Kezrblx. All rights reserved.
   </div>
 </div>
 
@@ -785,7 +792,6 @@
   async function loadAccounts(){
     const { data } = await supabaseClient.from('accounts').select('*');
     if(data) {
-      // Tanging ang may status na "Available" lamang ang ipinapakita; awtomatikong nakatago ang "Sold" at "Hidden"
       accounts = data.filter(acc => String(acc.status).toLowerCase() === "available");
       updateCategoryCounts();
       applyFilters();
@@ -837,7 +843,6 @@
 
   setInterval(updateLiveClock, 1000);
 
-  // Auto-refresh every 30 seconds
   setInterval(() => {
     loadAccounts();
     loadLatestVouches();
