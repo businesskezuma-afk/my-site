@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Digital & Gaming Marketplace - Trusted Accounts & Items</title>
+<title>Roblox & Digital Marketplace - Trusted Accounts & Items</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff0033' font-family='Arial, sans-serif' font-weight='900' font-size='75'>K</text></svg>">
 
-<meta property="og:title" content="Digital & Gaming Marketplace - Trusted Accounts & Items">
+<meta property="og:title" content="Roblox & Digital Marketplace - Trusted Accounts & Items">
 <meta property="og:description" content="Find available Roblox, Minecraft, and Digital Accounts quickly and easily. 100% Legit & Trusted!">
 <meta property="og:image" content="https://i.imgur.com/LvtMePH.jpeg">
 <meta property="og:url" content="https://kezrblx.vercel.app">
@@ -96,9 +96,6 @@
   .detail-row { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid #1d1d1d; font-size: 11px; }
   .detail-label { color: #666; }
   .detail-value { color: #e8e8e8; text-align: right; font-weight: 700; word-break: break-all; }
-
-  .view-details-link { background: none; border: none; color: var(--green-light); font-size: 11px; font-weight: bold; cursor: pointer; text-align: left; padding: 4px 0; margin-bottom: 10px; display: inline-block; text-decoration: underline; }
-  .view-details-link:hover { color: #fff; }
 
   .price-box { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px; background: #131313; border: 1px solid #202020; border-radius: 10px; margin-bottom: 10px; margin-top: auto; }
   .price-label { color: #5d5d5d; font-size: 9px; font-weight: 800; }
@@ -354,19 +351,6 @@
   </div>
 </div>
 
-<div id="detailsModal" class="modal-overlay" onclick="closeDetailsModal()">
-  <div class="modal-box" onclick="event.stopPropagation()">
-    <button class="modal-close" onclick="closeDetailsModal()">×</button>
-    <div class="modal-title" id="modalDetailsTitle">Full Details</div>
-    <div class="modal-subtitle" id="modalDetailsSubtitle">---</div>
-    <div id="modalDetailsImageContainer" style="margin-bottom: 12px; border-radius: 8px; overflow: hidden; max-height: 200px; background: #151515; display: none;">
-      <img id="modalDetailsImg" src="" alt="Account Image" class="clickable-thumb" style="width: 100%; height: 100%; object-fit: cover;" onclick="openImageModal(this.src)">
-    </div>
-    <div id="modalDetailsContent" style="margin: 15px 0; max-height: 40vh; overflow-y: auto;"></div>
-    <button class="buy-btn" id="modalBuyBtn">🛒 BUY NOW</button>
-  </div>
-</div>
-
 <div id="imageModal" class="img-modal-overlay" onclick="closeImageModal()">
   <div class="img-modal-box" onclick="event.stopPropagation()">
     <button class="img-modal-close" onclick="closeImageModal()">×</button>
@@ -459,69 +443,6 @@
   }
 
   function closeCheckoutModal() { document.getElementById("checkoutModal").style.display = "none"; }
-
-  function openDetailsModal(accountObj) {
-    document.getElementById("modalDetailsTitle").textContent = `${accountObj.game} - ${accountObj.id}`;
-    document.getElementById("modalDetailsSubtitle").textContent = accountObj.account ? `Username: ${accountObj.account}` : '';
-    
-    const imgContainer = document.getElementById("modalDetailsImageContainer");
-    const modalImg = document.getElementById("modalDetailsImg");
-    if(accountObj.image_url) {
-      modalImg.src = accountObj.image_url;
-      imgContainer.style.display = "block";
-    } else {
-      imgContainer.style.display = "none";
-    }
-
-    let fullDetailsHtml = "";
-    const game = normalizeGame(accountObj.game);
-    if(game === "steal an egg"){
-      fullDetailsHtml += detailRow("Username", accountObj.account);
-      fullDetailsHtml += detailRow("Money", accountObj.money);
-      fullDetailsHtml += detailRow("Money/s", accountObj.moneyPerSecond);
-      fullDetailsHtml += detailRow("Speed", accountObj.speed);
-    } else if(game === "steal a brainrot"){
-      fullDetailsHtml += detailRow("Username", accountObj.account);
-      fullDetailsHtml += detailRow("Money", accountObj.money);
-      fullDetailsHtml += detailRow("Steals", accountObj.steals);
-      fullDetailsHtml += detailRow("Rebirth", accountObj.rebirth);
-      if(String(accountObj.adminPanel).trim().toLowerCase() === "true") fullDetailsHtml += detailRow("🛠️ Admin Panel", "TRUE");
-      else if(String(accountObj.adminPanel).trim().toLowerCase() === "false") fullDetailsHtml += detailRow("🛠️ Admin Panel", "FALSE");
-    } else if(game === "blox fruits"){
-      fullDetailsHtml += detailRow("Title / Name", accountObj.account);
-      fullDetailsHtml += detailRow("Level", accountObj.level);
-      fullDetailsHtml += detailRow("Bounty", accountObj.bounty);
-      fullDetailsHtml += detailRow("Fruit", accountObj.fruit);
-      fullDetailsHtml += detailRow("Fighting Style", accountObj.fightingStyle);
-      fullDetailsHtml += detailRow("Race", accountObj.race);
-      fullDetailsHtml += detailRow("Permanent Fruit", accountObj.permanentFruit);
-      fullDetailsHtml += detailRow("Gamepass", accountObj.gamepass);
-    } else if(game === "minecraft"){
-      fullDetailsHtml += detailRow("Username", accountObj.account);
-      fullDetailsHtml += detailRow("Access", accountObj.mcAccess);
-      fullDetailsHtml += detailRow("Platform", accountObj.mcPlatform);
-      fullDetailsHtml += detailRow("Rank", accountObj.mcRank);
-      fullDetailsHtml += detailRow("Capes / Items", accountObj.mcCapes);
-    } else if(game === "digital goods"){
-      fullDetailsHtml += detailRow("Platform / Service", accountObj.dgPlatform);
-      fullDetailsHtml += detailRow("Inclusions / Details", accountObj.dgInclusions);
-      fullDetailsHtml += detailRow("Account Info", accountObj.account);
-    }
-
-    document.getElementById("modalDetailsContent").innerHTML = fullDetailsHtml || "<div style='color:#666;'>No extra details available.</div>";
-    
-    const buyBtn = document.getElementById("modalBuyBtn");
-    buyBtn.onclick = function() {
-      closeDetailsModal();
-      openCheckoutModal(accountObj.id, formatPrice(accountObj.price), accountObj.game);
-    };
-
-    document.getElementById("detailsModal").style.display = "flex";
-  }
-
-  function closeDetailsModal() {
-    document.getElementById("detailsModal").style.display = "none";
-  }
 
   function switchCheckoutMode(mode) {
     const tabOnSite = document.getElementById("tabOnSite");
@@ -864,6 +785,7 @@
   async function loadAccounts(){
     const { data } = await supabaseClient.from('accounts').select('*');
     if(data) {
+      // Tanging ang may status na "Available" lamang ang ipinapakita; awtomatikong nakatago ang "Sold" at "Hidden"
       accounts = data.filter(acc => String(acc.status).toLowerCase() === "available");
       updateCategoryCounts();
       applyFilters();
@@ -915,6 +837,7 @@
 
   setInterval(updateLiveClock, 1000);
 
+  // Auto-refresh every 30 seconds
   setInterval(() => {
     loadAccounts();
     loadLatestVouches();
