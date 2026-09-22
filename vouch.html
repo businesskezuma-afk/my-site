@@ -3,86 +3,103 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Write a Vouch / Review - Roblox Marketplace</title>
+<title>Write a Vouch / Review - Kezrblx Marketplace</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff0033' font-family='Arial, sans-serif' font-weight='900' font-size='75'>K</text></svg>">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
   body { background: #090909; color: #f5f5f5; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-  .form-container { background: #101010; border: 1px solid #202020; border-radius: 14px; padding: 30px; width: 100%; max-width: 480px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-  .form-header { text-align: center; margin-bottom: 25px; }
-  .form-header h1 { color: #00d564; font-size: 22px; font-weight: 900; margin-bottom: 5px; }
-  .form-header p { color: #8b8b8b; font-size: 11px; }
   
-  .form-group { margin-bottom: 15px; }
-  .form-group label { display: block; margin-bottom: 5px; font-size: 11px; color: #aaa; font-weight: bold; text-transform: uppercase; }
-  .form-control { width: 100%; padding: 12px; background: #141414; border: 1px solid #292929; border-radius: 8px; color: #fff; font-size: 14px; outline: none; transition: 0.2s; }
+  .card { background: #101010; border: 1px solid #202020; border-radius: 14px; max-width: 480px; width: 100%; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); text-align: center; }
+  
+  .header-title { color: #00d564; font-size: 20px; font-weight: 900; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .header-subtitle { color: #888; font-size: 11px; margin-bottom: 25px; }
+
+  .form-group { margin-bottom: 15px; text-align: left; }
+  .form-group label { display: block; margin-bottom: 5px; font-size: 9px; color: #aaa; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
+  
+  .form-control { width: 100%; padding: 11px; background: #141414; border: 1px solid #222; border-radius: 8px; color: #fff; font-size: 12px; outline: none; }
   .form-control:focus { border-color: #00d564; background: #181818; }
-  
-  .rating-select { display: flex; gap: 10px; }
-  .rating-star { font-size: 20px; cursor: pointer; color: #444; transition: 0.2s; }
-  .rating-star.active { color: #ffbd2e; }
+  textarea.form-control { resize: vertical; min-height: 85px; }
 
-  .submit-btn { width: 100%; padding: 14px; margin-top: 10px; background: #00d564; color: #000; border: none; border-radius: 8px; font-size: 14px; font-weight: 900; cursor: pointer; transition: 0.2s; }
-  .submit-btn:hover { background: #00e676; }
-  
-  .back-link { display: block; text-align: center; margin-top: 15px; color: #888; font-size: 11px; text-decoration: none; }
-  .back-link:hover { color: #fff; }
+  .star-rating-wrapper { display: flex; gap: 5px; font-size: 22px; cursor: pointer; margin-top: 4px; }
+  .star { color: #444; transition: 0.2s; }
+  .star.selected { color: #ffbd2e; }
 
-  #statusMessage { margin-top: 15px; padding: 10px; border-radius: 8px; text-align: center; font-size: 12px; font-weight: bold; display: none; }
+  .submit-btn { width: 100%; padding: 13px; background: #00d564; color: #000; border: none; font-size: 12px; font-weight: 900; border-radius: 8px; cursor: pointer; transition: 0.2s; margin-top: 10px; text-transform: uppercase; }
+  .submit-btn:hover { background: #00e676; transform: translateY(-1px); }
+
+  .back-link { display: inline-block; color: #888; font-size: 11px; font-weight: bold; text-decoration: none; margin-top: 20px; }
+  .back-link:hover { color: #fff; text-decoration: underline; }
+
+  .success-msg { display: none; text-align: center; padding: 20px 0; }
+  .success-msg h3 { color: #00d564; font-size: 18px; margin-bottom: 8px; font-weight: 900; }
+  .success-msg p { color: #aaa; font-size: 12px; margin-bottom: 15px; }
+
+  .preview-box { background: #141414; border: 1px solid #222; border-radius: 8px; padding: 10px; margin-top: 8px; display: none; font-size: 11px; color: #00d564; text-align: left; }
 </style>
 </head>
 <body>
 
-<div class="form-container">
-  <div class="form-header">
-    <h1>SUBMIT YOUR VOUCH</h1>
-    <p>Enter your Order Code to submit a verified review.</p>
+<div class="card">
+  <div id="formContainer">
+    <div class="header-title">SUBMIT YOUR VOUCH</div>
+    <div class="header-subtitle">Enter your Order Code to submit a verified review.</div>
+    
+    <form id="vouchForm" onsubmit="submitVouch(event)">
+      <div class="form-group">
+        <label>ORDER CODE (E.G. ORD-XXXXXX)</label>
+        <input type="text" id="vouchOrderCode" class="form-control" placeholder="Enter your Order Code here" oninput="fetchOrderByCode(this.value)" required>
+        <div id="orderPreviewBox" class="preview-box"></div>
+      </div>
+
+      <div class="form-group">
+        <label>YOUR NAME (OR FACEBOOK NAME)</label>
+        <input type="text" id="customerName" class="form-control" placeholder="e.g. John Doe" required>
+      </div>
+
+      <div class="form-group">
+        <label>GAME OR ITEM PURCHASED</label>
+        <select id="vouchGame" class="form-control" required>
+          <option value="" disabled selected>Select game category</option>
+          <option value="Steal An Egg">Steal An Egg</option>
+          <option value="Steal A Brainrot">Steal A Brainrot</option>
+          <option value="Blox Fruits">Blox Fruits</option>
+          <option value="Minecraft">Minecraft</option>
+          <option value="Digital Goods">Digital Goods / Accounts</option>
+          <option value="General Shop / Items">General Shop / Items</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>RATING</label>
+        <div class="star-rating-wrapper" id="starContainer">
+          <span class="star selected" data-value="1" onclick="setRating(1)">★</span>
+          <span class="star selected" data-value="2" onclick="setRating(2)">★</span>
+          <span class="star selected" data-value="3" onclick="setRating(3)">★</span>
+          <span class="star selected" data-value="4" onclick="setRating(4)">★</span>
+          <span class="star selected" data-value="5" onclick="setRating(5)">★</span>
+        </div>
+        <input type="hidden" id="vouchRating" value="5" required>
+      </div>
+
+      <div class="form-group">
+        <label>FEEDBACK / MESSAGE</label>
+        <textarea id="vouchFeedback" class="form-control" placeholder="Super fast transaction and 100% legit! Account details provided instantly." required></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">VERIFY & SUBMIT VOUCH</button>
+    </form>
   </div>
 
-  <form id="vouchForm">
-    <div class="form-group">
-      <label>Order Code (e.g. ORD-XXXXXX)</label>
-      <input type="text" id="orderCodeInput" class="form-control" placeholder="Enter your Order Code here" required>
-    </div>
+  <div id="successContainer" class="success-msg">
+    <h3>Salamat sa iyong Vouch! 🎉</h3>
+    <p>Matagumpay na naisumite ang iyong verified review.</p>
+    <a href="index.html" class="submit-btn" style="display: block; text-decoration: none; text-align: center; line-height: normal;">BALIK SA MARKETPLACE</a>
+  </div>
 
-    <div class="form-group">
-      <label>Your Name (or Facebook Name)</label>
-      <input type="text" id="customerName" class="form-control" placeholder="e.g. John Doe" required>
-    </div>
-
-    <div class="form-group">
-      <label>Game or Item Purchased</label>
-      <select id="gameCategory" class="form-control" required>
-        <option value="" disabled selected>Select game category</option>
-        <option value="Steal An Egg">Steal An Egg</option>
-        <option value="Steal A Brainrot">Steal A Brainrot</option>
-        <option value="Blox Fruits">Blox Fruits</option>
-        <option value="General Shop">General Shop / Items</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label>Rating</label>
-      <div class="rating-select" id="starContainer">
-        <span class="rating-star active" data-value="1">★</span>
-        <span class="rating-star active" data-value="2">★</span>
-        <span class="rating-star active" data-value="3">★</span>
-        <span class="rating-star active" data-value="4">★</span>
-        <span class="rating-star active" data-value="5">★</span>
-      </div>
-      <input type="hidden" id="ratingValue" value="5">
-    </div>
-
-    <div class="form-group">
-      <label>Feedback / Message</label>
-      <textarea id="feedbackText" class="form-control" rows="4" placeholder="Super fast transaction and 100% legit! Account details provided instantly." required></textarea>
-    </div>
-
-    <button type="submit" class="submit-btn" id="submitBtn">VERIFY & SUBMIT VOUCH</button>
-    <div id="statusMessage"></div>
-  </form>
-
-  <a href="index.html" class="back-link">← Back to Marketplace</a>
+  <div>
+    <a href="index.html" class="back-link">← Back to Marketplace</a>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -92,79 +109,118 @@
   const supabaseKey = 'sb_publishable_qWOJctjWQouOqSzjek73pw_FYz7MbyS';
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-  const stars = document.querySelectorAll('.rating-star');
-  const ratingInput = document.getElementById('ratingValue');
+  let verifiedOrderData = null;
 
-  stars.forEach((star, index) => {
-    star.addEventListener('click', () => {
-      const val = index + 1;
-      ratingInput.value = val;
-      stars.forEach((s, i) => {
-        if(i < val) s.classList.add('active');
-        else s.classList.remove('active');
-      });
+  function setRating(val) {
+    document.getElementById('vouchRating').value = val;
+    const stars = document.querySelectorAll('.star');
+    stars.forEach(star => {
+      if(parseInt(star.getAttribute('data-value')) <= val) {
+        star.classList.add('selected');
+      } else {
+        star.classList.remove('selected');
+      }
     });
-  });
+  }
 
-  document.getElementById('vouchForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const btn = document.getElementById('submitBtn');
-    const msg = document.getElementById('statusMessage');
-    const orderCode = document.getElementById('orderCodeInput').value.trim();
+  async function fetchOrderByCode(orderCode) {
+    const val = orderCode.trim().toUpperCase();
+    const box = document.getElementById('orderPreviewBox');
+    const gameSelect = document.getElementById('vouchGame');
 
-    btn.textContent = "VERIFYING ORDER...";
-    btn.disabled = true;
+    if(!val) {
+      box.style.display = 'none';
+      box.textContent = '';
+      verifiedOrderData = null;
+      return;
+    }
 
     try {
-      // 1. Check if order code is valid and completed in database
       const { data: orderData, error: orderError } = await supabaseClient
         .from('orders')
         .select('*')
-        .eq('order_id', orderCode)
+        .eq('order_id', val)
         .single();
 
       if(orderError || !orderData) {
-        throw new Error("Order Code not found. Please make sure you entered the correct code.");
+        box.style.display = 'block';
+        box.style.color = '#ff5f56';
+        box.textContent = '❌ Walang nahanap na Order Code na ito.';
+        verifiedOrderData = null;
+        return;
       }
 
-      if(String(orderData.status).toLowerCase() !== 'completed') {
-        throw new Error("This order status is currently '" + orderData.status + "'. It must be marked as 'Completed' by the admin before you can vouch.");
-      }
+      const { data: itemData } = await supabaseClient
+        .from('accounts')
+        .select('*')
+        .eq('id', orderData.item_id)
+        .single();
 
-      // 2. If valid and completed, save the vouch
-      const vouchData = {
+      verifiedOrderData = {
+        order: orderData,
+        item: itemData || {}
+      };
+
+      box.style.display = 'block';
+      box.style.color = '#00d564';
+      box.textContent = `✅ Verified! Item ID: ${orderData.item_id} (₱${orderData.price})`;
+      
+      if(orderData.game) {
+        for(let i = 0; i < gameSelect.options.length; i++) {
+          if(gameSelect.options[i].value.toLowerCase() === orderData.game.toLowerCase()) {
+            gameSelect.selectedIndex = i;
+            break;
+          }
+        }
+      }
+    } catch(err) {
+      box.style.display = 'none';
+      verifiedOrderData = null;
+    }
+  }
+
+  async function submitVouch(e) {
+    e.preventDefault();
+    if(!verifiedOrderData) {
+      alert("Mangyaring maglagay ng valid at umiiral na Order Code.");
+      return;
+    }
+
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = "VERIFYING...";
+    btn.disabled = true;
+
+    try {
+      const item = verifiedOrderData.item || {};
+      const order = verifiedOrderData.order || {};
+
+      const newVouch = {
         customer_name: document.getElementById('customerName').value.trim(),
-        game: document.getElementById('gameCategory').value,
-        rating: parseInt(ratingInput.value),
-        feedback: document.getElementById('feedbackText').value.trim(),
-        status: 'Pending', // Awaiting admin approval for public display
+        game: document.getElementById('vouchGame').value,
+        item_id: order.item_id || item.id || null,
+        order_code: order.order_id || document.getElementById('vouchOrderCode').value.trim(),
+        rating: parseInt(document.getElementById('vouchRating').value),
+        feedback: document.getElementById('vouchFeedback').value.trim(),
+        image_url: item.image_url || null,
+        price: order.price || item.price || 0,
+        money: item.money || null,
+        money_per_second: item.moneyPerSecond || null,
+        speed: item.speed || null,
+        status: 'Pending',
         date_added: new Date().toISOString().split('T')[0]
       };
 
-      const { error: insertError } = await supabaseClient.from('vouches').insert([vouchData]);
-      if(insertError) throw insertError;
+      const { error } = await supabaseClient.from('vouches').insert([newVouch]);
+      if (error) throw error;
 
-      msg.textContent = "Success! Your order has been verified and your vouch has been submitted.";
-      msg.style.color = "#00d564";
-      msg.style.backgroundColor = "rgba(0,213,100,0.1)";
-      msg.style.display = 'block';
-      document.getElementById('vouchForm').reset();
-      
-      setTimeout(() => {
-        window.location.href = "index.html";
-      }, 3000);
-
-    } catch(err) {
-      console.error(err);
-      msg.textContent = "Error: " + err.message;
-      msg.style.color = "#ff5f56";
-      msg.style.backgroundColor = "rgba(255,95,86,0.1)";
-      msg.style.display = 'block';
+      document.getElementById('formContainer').style.display = 'none';
+      document.getElementById('successContainer').style.display = 'block';
+    } catch (err) {
+      alert("Error submitting vouch: " + err.message);
       btn.textContent = "VERIFY & SUBMIT VOUCH";
       btn.disabled = false;
     }
-  });
+  }
 </script>
-
 </body>
 </html>
