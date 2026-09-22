@@ -21,7 +21,7 @@
   .vouch-card { background: #101010; border: 1px solid #202020; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 8px 25px rgba(0,0,0,0.6); }
   
   .item-snapshot { background: #141414; border: 1px solid #222; border-radius: 10px; padding: 12px; margin-bottom: 14px; }
-  .item-snapshot img { width: 100%; height: 130px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; background: #181818; }
+  .item-snapshot img { width: 100%; height: 140px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; background: #181818; }
   
   .snapshot-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
   .game-pill { font-size: 9px; color: #888; font-weight: 900; text-transform: uppercase; background: #1c1c1c; padding: 4px 8px; border-radius: 999px; border: 1px solid #282828; }
@@ -97,13 +97,25 @@
 
       grid.innerHTML = data.map(v => {
         let detailsHtml = '';
+
         if (v.money) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Money</span><span class="snapshot-detail-value">${escapeHTML(v.money)}</span></div>`;
         if (v.money_per_second) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Money/s</span><span class="snapshot-detail-value">${escapeHTML(v.money_per_second)}</span></div>`;
         if (v.speed) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Speed</span><span class="snapshot-detail-value">${escapeHTML(v.speed)}</span></div>`;
+        if (v.steals) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Steals</span><span class="snapshot-detail-value">${escapeHTML(v.steals)}</span></div>`;
+        if (v.rebirth) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Rebirth</span><span class="snapshot-detail-value">${escapeHTML(v.rebirth)}</span></div>`;
+        if (v.level) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Level</span><span class="snapshot-detail-value">${escapeHTML(v.level)}</span></div>`;
+        if (v.bounty) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Bounty</span><span class="snapshot-detail-value">${escapeHTML(v.bounty)}</span></div>`;
+        if (v.fruit) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Fruit</span><span class="snapshot-detail-value">${escapeHTML(v.fruit)}</span></div>`;
+        if (v.fighting_style) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Fighting Style</span><span class="snapshot-detail-value">${escapeHTML(v.fighting_style)}</span></div>`;
+        if (v.race) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Race</span><span class="snapshot-detail-value">${escapeHTML(v.race)}</span></div>`;
+        if (v.mc_access) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Access</span><span class="snapshot-detail-value">${escapeHTML(v.mc_access)}</span></div>`;
+        if (v.mc_platform) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Platform</span><span class="snapshot-detail-value">${escapeHTML(v.mc_platform)}</span></div>`;
+        if (v.mc_rank) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Rank</span><span class="snapshot-detail-value">${escapeHTML(v.mc_rank)}</span></div>`;
+        if (v.mc_capes) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Capes</span><span class="snapshot-detail-value">${escapeHTML(v.mc_capes)}</span></div>`;
 
         const imageTag = v.image_url ? `<img src="${escapeHTML(v.image_url)}" alt="Item Screenshot">` : '';
         const priceText = formatPrice(v.price);
-        const itemIdText = v.item_id ? escapeHTML(v.item_id) : 'N/A';
+        const itemIdText = v.item_id ? escapeHTML(v.item_id) : (v.order_code ? escapeHTML(v.order_code) : 'N/A');
 
         return `
           <div class="vouch-card">
