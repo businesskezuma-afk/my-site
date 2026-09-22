@@ -474,15 +474,21 @@
       const { error } = await supabaseClient.from('orders').update({ status: newStatus }).eq('order_id', orderId);
       if(error) throw error;
 
-      // 🔒 Awtomatikong gawing 'Sold' ang item sa inventory kapag na-complete ang order
+      // 🔒 Awtomatikong gawing 'Sold' ang item sa accounts/inventory table para sa LAHAT NG KATEGORYA
       if (newStatus === 'Completed' && itemId && itemId !== 'N/A') {
-        const { error: accountError } = await supabaseClient
+        // Subukan muna i-update gamit ang eksaktong ID
+        const { data: updatedData, error: accountError } = await supabaseClient
           .from('accounts')
           .update({ status: 'Sold' })
-          .eq('id', itemId);
+          .eq('id', itemId)
+          .select();
 
-        if (accountError) {
-          console.error("Error updating inventory status:", accountError.message);
+        if (accountError || !updatedData || updatedData.length === 0) {
+          // Fallback sakaling may maliit na spacing o case-sensitivity sa ID
+          await supabaseClient
+            .from('accounts')
+            .update({ status: 'Sold' })
+            .ilike('id', itemId);
         }
       }
 
