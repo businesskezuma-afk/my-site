@@ -568,7 +568,6 @@
       <div style="font-size: 15px; font-weight: 900; color: #fff; margin-bottom: 4px;">Order Placed Successfully!</div>
       <div class="order-id-highlight" id="successOrderCode">ORD-XXXXXX</div>
       
-      <!-- Instruction Added Here -->
       <div class="order-instruction-box">
         <b>PLEASE NOTE:</b> Copy or screenshot your <b>Order Code</b> above. Send it to our <a href="https://www.facebook.com/mark.bnsacc1" target="_blank" style="color:#00e676; text-decoration:underline;">Main Facebook</a> or <a href="https://www.facebook.com/profile.php?id=61594901001557" target="_blank" style="color:#00e676; text-decoration:underline;">Second Facebook</a> along with your payment proof so your transaction can be processed immediately!
       </div>
@@ -605,7 +604,7 @@
   let selectedCheckoutItem = null;
   let currentConversationId = localStorage.getItem('chat_conv_id');
   let chatRealtimeChannel = null;
-  let inactivityTimer = null; // Variable para sa 10-minute inactivity timer
+  let inactivityTimer = null;
 
   const tickerMessages = [
     "🔥 Mark S. successfully purchased Roblox Steal an Egg account via GCash!",
@@ -628,22 +627,18 @@
         loadCustomerMessages();
       }
       setupCustomerRealtimeChat();
-      resetInactivityTimer(); // I-reset ang timer kapag binuksan ang chat
+      resetInactivityTimer();
     }
   }
 
-  // 10-Minute Inactivity Timer Function
   function resetInactivityTimer() {
     if (inactivityTimer) clearTimeout(inactivityTimer);
 
-    // 10 minutes = 600,000 milliseconds
     inactivityTimer = setTimeout(async () => {
       if (currentConversationId) {
-        // Burahin ang mga mensahe at conversation sa Supabase database
         await supabaseClient.from('messages').delete().eq('conversation_id', currentConversationId);
         await supabaseClient.from('conversations').delete().eq('id', currentConversationId);
         
-        // Linisin ang local storage at channel
         localStorage.removeItem('chat_conv_id');
         currentConversationId = null;
         
@@ -652,7 +647,6 @@
           chatRealtimeChannel = null;
         }
 
-        // Ibalik sa welcome message ang chat body
         const container = document.getElementById('chatBodyContainer');
         if (container) {
           container.innerHTML = `
@@ -670,35 +664,51 @@
     const msg = input.value.trim();
     if(!msg) return;
 
-    if(!currentConversationId) {
-      currentConversationId = 'CONV-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-      localStorage.setItem('chat_conv_id', currentConversationId);
-      
-      await supabaseClient.from('conversations').insert([{
-        id: currentConversationId,
-        customer_name: 'Customer ' + currentConversationId.split('-')[1],
-        status: 'Open',
+    try {
+      if(!currentConversationId) {
+        currentConversationId = 'CONV-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        localStorage.setItem('chat_conv_id', currentConversationId);
+        
+        const { error: convError } = await supabaseClient.from('conversations').insert([{
+          id: currentConversationId,
+          customer_name: 'Customer ' + currentConversationId.split('-')[1],
+          status: 'Open',
+          last_message: msg,
+          updated_at: new Date()
+        }]);
+        
+        if (convError) {
+          console.error("Error creating conversation:", convError);
+          alert("Error sa pag-save ng conversation. Paki-check ang Supabase RLS policies.");
+          return;
+        }
+        
+        setupCustomerRealtimeChat();
+      }
+
+      const { error: msgError } = await supabaseClient.from('messages').insert([{
+        conversation_id: currentConversationId,
+        sender: 'customer',
+        message: msg
+      }]);
+
+      if (msgError) {
+        console.error("Error sending message:", msgError);
+        alert("Hindi masend ang mensahe. Paki-check ang Supabase RLS policies para sa tables.");
+        return;
+      }
+
+      await supabaseClient.from('conversations').update({
         last_message: msg,
         updated_at: new Date()
-      }]);
-      
-      setupCustomerRealtimeChat();
+      }).eq('id', currentConversationId);
+
+      input.value = '';
+      loadCustomerMessages();
+      resetInactivityTimer();
+    } catch (err) {
+      console.error("Unexpected error:", err);
     }
-
-    await supabaseClient.from('messages').insert([{
-      conversation_id: currentConversationId,
-      sender: 'customer',
-      message: msg
-    }]);
-
-    await supabaseClient.from('conversations').update({
-      last_message: msg,
-      updated_at: new Date()
-    }).eq('id', currentConversationId);
-
-    input.value = '';
-    loadCustomerMessages();
-    resetInactivityTimer(); // I-reset ang timer kapag nagpadala ng mensahe
   }
 
   async function loadCustomerMessages() {
@@ -739,7 +749,7 @@
         filter: `conversation_id=eq.${currentConversationId}`
       }, (payload) => {
         loadCustomerMessages();
-        resetInactivityTimer(); // I-reset din ang timer kapag may pumasok na reply galing sa admin
+        resetInactivityTimer();
       })
       .subscribe();
   }
@@ -1238,7 +1248,7 @@
   if(currentConversationId) {
     loadCustomerMessages();
     setupCustomerRealtimeChat();
-    resetInactivityTimer(); // Simulan ang timer kung may existing session
+    resetInactivityTimer();
   }
 
   setInterval(updateLiveClock, 1000);
