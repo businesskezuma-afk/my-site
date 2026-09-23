@@ -36,12 +36,19 @@
   .conv-item { padding: 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; gap: 5px; }
   .conv-item:hover { background: var(--surface-soft); }
   .conv-item.active { background: var(--green-soft); border-left: 3px solid var(--green); }
+  .conv-item-top { display: flex; justify-content: space-between; align-items: center; }
   .conv-name { font-weight: 800; font-size: 13px; color: #fff; }
+  .status-badge { font-size: 8px; font-weight: 900; padding: 3px 7px; border-radius: 999px; text-transform: uppercase; }
+  .status-badge.active { background: rgba(0,213,100,0.15); color: var(--green-light); border: 1px solid rgba(0,213,100,0.3); }
+  .status-badge.inactive { background: rgba(255,95,92,0.15); color: var(--danger); border: 1px solid rgba(255,95,92,0.3); }
   .conv-preview { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   .chat-pane { flex: 1; display: flex; flex-direction: column; background: var(--bg); }
   .chat-header-info { padding: 16px 24px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 900; color: #fff; display: flex; align-items: center; justify-content: space-between; }
   
+  .delete-conv-btn { background: rgba(255,95,92,0.1); color: var(--danger); border: 1px solid rgba(255,95,92,0.3); padding: 7px 12px; border-radius: 8px; font-size: 10px; font-weight: 900; cursor: pointer; transition: 0.2s; }
+  .delete-conv-btn:hover { background: var(--danger); color: #fff; }
+
   .chat-messages { flex: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; background: radial-gradient(circle at center, rgba(0,213,100,0.03), transparent 70%), var(--bg); }
   
   .msg-bubble { padding: 12px 16px; border-radius: 12px; max-width: 65%; word-break: break-word; font-size: 12px; line-height: 1.5; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
@@ -117,20 +124,63 @@
     }
 
     document.getElementById('convCount').textContent = data.length;
-    listEl.innerHTML = data.map(c => `
-      <div class="conv-item ${activeConvId === c.id ? 'active' : ''}" onclick="selectConversation('${c.id}', '${escapeHTML(c.customer_name || 'Customer')}')">
-        <div class="conv-name">${escapeHTML(c.customer_name || 'Customer')}</div>
-        <div class="conv-preview">${escapeHTML(c.last_message || 'No message')}</div>
-      </div>
-    `).join('');
+    const now = new Date();
+
+    listEl.innerHTML = data.map(c => {
+      // Suriin kung inactive na (lumampas ng 10 minuto ang updated_at)
+      const updatedAt = new Date(c.updated_at);
+      const diffMinutes = (now - updatedAt) / (1000 * 60);
+      const isInactive = diffMinutes > 10;
+      const statusText = isInactive ? 'Inactive' : 'Active';
+      const statusClass = isInactive ? 'inactive' : 'active';
+
+      return `
+        <div class="conv-item ${activeConvId === c.id ? 'active' : ''}" onclick="selectConversation('${c.id}', '${escapeHTML(c.customer_name || 'Customer')}')">
+          <div class="conv-item-top">
+            <div class="conv-name">${escapeHTML(c.customer_name || 'Customer')}</div>
+            <span class="status-badge ${statusClass}">${statusText}</span>
+          </div>
+          <div class="conv-preview">${escapeHTML(c.last_message || 'No message')}</div>
+        </div>
+      `;
+    }).join('');
   }
 
   function selectConversation(convId, custName) {
     activeConvId = convId;
     activeCustName = custName;
     document.getElementById('chatInputArea').style.display = 'flex';
-    document.getElementById('chatHeaderTitle').innerHTML = `Conversation with: <span style="color:var(--green-light); margin-left: 5px;">${custName}</span> <span style="font-size:10px; color:var(--muted); font-weight:normal; margin-left:10px;">ID: ${convId}</span>`;
+    document.getElementById('chatHeaderTitle').innerHTML = `
+      <div>Conversation with: <span style="color:var(--green-light); margin-left: 5px;">${custName}</span> <span style="font-size:10px; color:var(--muted); font-weight:normal; margin-left:10px;">ID: ${convId}</span></div>
+      <button class="delete-conv-btn" onclick="deleteConversation('${convId}')">🗑️ Delete Conversation</button>
+    `;
     loadMessages();
+    loadConversations();
+  }
+
+  async function deleteConversation(convId) {
+    if(!confirm("Are you sure you want to delete this conversation and all its messages?")) return;
+
+    // Burahin muna ang mga messages na naka-link sa conversation na ito
+    await supabaseClient.from('messages').delete().eq('conversation_id', convId);
+    
+    // Sunod na burahin ang mismong conversation
+    const { error } = await supabaseClient.from('conversations').delete().eq('id', convId);
+
+    if(error) {
+      alert("Error deleting conversation: " + error.message);
+      return;
+    }
+
+    // I-reset ang view kung ang dinelete ay ang kasalukuyang nakabukas
+    if(activeConvId === convId) {
+      activeConvId = null;
+      activeCustName = '';
+      document.getElementById('chatInputArea').style.display = 'none';
+      document.getElementById('chatHeaderTitle').innerHTML = 'Select a conversation on the left';
+      document.getElementById('chatMessagesArea').innerHTML = `<div class="empty-chat">No conversation selected. Click on the list on the left to start chatting.</div>`;
+    }
+
     loadConversations();
   }
 
@@ -187,7 +237,6 @@
     return String(value ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
   }
 
-  // Initial load
   loadConversations();
 
   // Supabase Realtime Subscription (Instant Sync)
