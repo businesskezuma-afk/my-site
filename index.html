@@ -812,15 +812,35 @@
           let statusText = updatedOrder.status === 'Completed' ? '✅ COMPLETED 🎉' : '❌ CANCELLED';
           let statusColor = updatedOrder.status === 'Completed' ? '#00e676' : '#ff5f56';
           
+          let accountDetailsHtml = "";
+          if (updatedOrder.status === 'Completed') {
+            const { data: accData } = await supabaseClient
+              .from('accounts')
+              .select('*')
+              .eq('id', updatedOrder.item_id)
+              .maybeSingle();
+
+            if (accData) {
+              accountDetailsHtml = `
+                <div class="chat-account-details-box">
+                  <b>📦 ACCOUNT DETAILS:</b><br>
+                  • Username/Info: <b>${escapeHTML(accData.account || accData.dgPlatform || 'N/A')}</b><br>
+                  • Status: Successfully Delivered!
+                </div>
+              `;
+            }
+          }
+          
           const notificationMsg = `
             <div class="chat-order-card" style="border-color: ${statusColor};">
               <div class="chat-order-header">
-                <span class="chat-order-title" style="color:${statusColor};">NOTIFICATION: ORDER ${updatedOrder.status.toUpperCase()}</span>
+                <span class="chat-order-title" style="color:${statusColor};">ORDER ${updatedOrder.status.toUpperCase()}</span>
                 <span class="chat-order-code">${escapeHTML(updatedOrder.order_id)}</span>
               </div>
-              <div class="chat-order-row"><span class="chat-order-label">Status Update:</span> <span class="chat-order-val" style="color:${statusColor};">${statusText}</span></div>
               <div class="chat-order-row"><span class="chat-order-label">Game/Item:</span> <span class="chat-order-val">${escapeHTML(updatedOrder.game)}</span></div>
-              <div style="margin-top:6px; font-size:10px; color:#aaa;">Your order has been updated by admin. Thank you for transacting with Kezrblx Store!</div>
+              <div class="chat-order-row"><span class="chat-order-label">Price:</span> <span class="chat-order-val" style="color:var(--green-light);">${escapeHTML(updatedOrder.price)}</span></div>
+              <div class="chat-order-row"><span class="chat-order-label">New Status:</span> <span class="chat-order-val" style="color:${statusColor};">${statusText}</span></div>
+              ${accountDetailsHtml}
             </div>
           `;
           await sendCustomerMessageCustomText(notificationMsg, true);
