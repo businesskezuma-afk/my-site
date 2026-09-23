@@ -604,7 +604,8 @@
   let currentSort = "default";
   let selectedCheckoutItem = null;
   let currentConversationId = localStorage.getItem('chat_conv_id');
-  let chatRealtimeChannel = null; // Variable para sa real-time channel ng customer chat
+  let chatRealtimeChannel = null;
+  let inactivityTimer = null; // Variable para sa 10-minute inactivity timer
 
   const tickerMessages = [
     "🔥 Mark S. successfully purchased Roblox Steal an Egg account via GCash!",
@@ -626,8 +627,42 @@
       if(currentConversationId) {
         loadCustomerMessages();
       }
-      setupCustomerRealtimeChat(); // I-setup ang real-time kapag binuksan ang chat
+      setupCustomerRealtimeChat();
+      resetInactivityTimer(); // I-reset ang timer kapag binuksan ang chat
     }
+  }
+
+  // 10-Minute Inactivity Timer Function
+  function resetInactivityTimer() {
+    if (inactivityTimer) clearTimeout(inactivityTimer);
+
+    // 10 minutes = 600,000 milliseconds
+    inactivityTimer = setTimeout(async () => {
+      if (currentConversationId) {
+        // Burahin ang mga mensahe at conversation sa Supabase database
+        await supabaseClient.from('messages').delete().eq('conversation_id', currentConversationId);
+        await supabaseClient.from('conversations').delete().eq('id', currentConversationId);
+        
+        // Linisin ang local storage at channel
+        localStorage.removeItem('chat_conv_id');
+        currentConversationId = null;
+        
+        if (chatRealtimeChannel) {
+          supabaseClient.removeChannel(chatRealtimeChannel);
+          chatRealtimeChannel = null;
+        }
+
+        // Ibalik sa welcome message ang chat body
+        const container = document.getElementById('chatBodyContainer');
+        if (container) {
+          container.innerHTML = `
+            <div class="chat-agent-msg">
+              Session expired due to 10 minutes of inactivity. Past messages have been cleared. Start a new conversation anytime! 👇
+            </div>
+          `;
+        }
+      }
+    }, 10 * 60 * 1000);
   }
 
   async function sendCustomerMessage() {
@@ -647,7 +682,7 @@
         updated_at: new Date()
       }]);
       
-      setupCustomerRealtimeChat(); // Mag-subscribe agad para sa bagong conversation
+      setupCustomerRealtimeChat();
     }
 
     await supabaseClient.from('messages').insert([{
@@ -663,6 +698,7 @@
 
     input.value = '';
     loadCustomerMessages();
+    resetInactivityTimer(); // I-reset ang timer kapag nagpadala ng mensahe
   }
 
   async function loadCustomerMessages() {
@@ -688,7 +724,6 @@
     }
   }
 
-  // Supabase Realtime para sa Customer Chat (On-time update kapag nag-reply ang admin)
   function setupCustomerRealtimeChat() {
     if (!currentConversationId) return;
     if (chatRealtimeChannel) {
@@ -703,7 +738,8 @@
         table: 'messages',
         filter: `conversation_id=eq.${currentConversationId}`
       }, (payload) => {
-        loadCustomerMessages(); // Kusang mag-a-update ang chat box nang hindi nagre-refresh
+        loadCustomerMessages();
+        resetInactivityTimer(); // I-reset din ang timer kapag may pumasok na reply galing sa admin
       })
       .subscribe();
   }
@@ -1202,6 +1238,7 @@
   if(currentConversationId) {
     loadCustomerMessages();
     setupCustomerRealtimeChat();
+    resetInactivityTimer(); // Simulan ang timer kung may existing session
   }
 
   setInterval(updateLiveClock, 1000);
