@@ -530,9 +530,13 @@
 
     const container = document.getElementById('chatBodyContainer');
     if(data) {
-      container.innerHTML = data.map(m => `
-        <div style="align-self: ${m.sender === 'customer' ? 'flex-end' : 'flex-start'}; background: ${m.sender === 'customer' ? '#00d564; color:#000;' : '#1c1c1c; color:#fff;'}; padding: 8px 12px; border-radius: 8px; max-width: 80%; word-break: break-word;">
-          ${m.message}
+      container.innerHTML = `
+        <div class="chat-agent-msg">
+          Hello! Do you have any questions about our accounts or items? Leave a message here and we will reply to you right away! 👇
+        </div>
+      ` + data.map(m => `
+        <div style="align-self: ${m.sender === 'customer' ? 'flex-end' : 'flex-start'}; background: ${m.sender === 'customer' ? '#00d564; color:#000;' : '#1c1c1c; color:#fff;'}; padding: 8px 12px; border-radius: 8px; max-width: 80%; word-break: break-word; margin-bottom: 4px;">
+          ${escapeHTML(m.message)}
         </div>
       `).join('');
       container.scrollTop = container.scrollHeight;
@@ -545,7 +549,7 @@
       if(box.style.display === 'flex') {
         loadCustomerMessages();
       }
-    }, 4000);
+    }, 3000);
   }
 
   async function loadSettings() {
@@ -1033,6 +1037,10 @@
   loadSettings();
   checkShopAvailability();
   setupVisitorCounter();
+
+  if(currentConversationId) {
+    loadCustomerMessages();
+  }
 
   setInterval(updateLiveClock, 1000);
 
