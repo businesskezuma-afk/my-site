@@ -245,7 +245,6 @@
     let finalMessageContent = msg;
     const cleanText = msg.trim().toUpperCase();
 
-    // Kung nagsisimula sa ORD-, awtomatiko itong gagawa ng order card para sa admin side din
     if (cleanText.startsWith("ORD-")) {
       const { data: orderData } = await supabaseClient
         .from('orders')
@@ -260,19 +259,30 @@
           .eq('id', orderData.item_id)
           .maybeSingle();
 
+        // Dynamic status text at kulay batay sa status ng order
+        let orderStatusLabel = "Ready for verification";
+        let statusDetailColor = "#00e676";
+        if (orderData.status === 'Completed') {
+          orderStatusLabel = "Successfully Delivered!";
+        } else if (orderData.status === 'Cancelled') {
+          orderStatusLabel = "Order Cancelled";
+          statusDetailColor = "#ff5f56";
+        }
+
         let accountDetailsHtml = "";
         if (accData) {
           accountDetailsHtml = `
             <div class="chat-account-details-box">
               <b>📦 ITEM / ACCOUNT DETAILS:</b><br>
               • Username/Info: <b>${escapeHTML(accData.account || accData.dgPlatform || 'N/A')}</b><br>
-              • Status: Ready for verification<br>
+              • Status: <span style="color:${statusDetailColor};">${orderStatusLabel}</span><br>
             </div>
           `;
         } else {
           accountDetailsHtml = `
             <div class="chat-account-details-box">
-              • Item ID: <b>${escapeHTML(orderData.item_id)}</b>
+              • Item ID: <b>${escapeHTML(orderData.item_id)}</b><br>
+              • Status: <span style="color:${statusDetailColor};">${orderStatusLabel}</span>
             </div>
           `;
         }
