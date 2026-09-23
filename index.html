@@ -604,6 +604,7 @@
   let currentSort = "default";
   let selectedCheckoutItem = null;
   let currentConversationId = localStorage.getItem('chat_conv_id');
+  let chatRealtimeChannel = null; // Variable para sa real-time channel ng customer chat
 
   const tickerMessages = [
     "🔥 Mark S. successfully purchased Roblox Steal an Egg account via GCash!",
@@ -621,8 +622,11 @@
   function toggleChatPopup() {
     const box = document.getElementById('chatPopupBox');
     box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
-    if(box.style.display === 'flex' && currentConversationId) {
-      loadCustomerMessages();
+    if(box.style.display === 'flex') {
+      if(currentConversationId) {
+        loadCustomerMessages();
+      }
+      setupCustomerRealtimeChat(); // I-setup ang real-time kapag binuksan ang chat
     }
   }
 
@@ -642,6 +646,8 @@
         last_message: msg,
         updated_at: new Date()
       }]);
+      
+      setupCustomerRealtimeChat(); // Mag-subscribe agad para sa bagong conversation
     }
 
     await supabaseClient.from('messages').insert([{
@@ -682,13 +688,24 @@
     }
   }
 
-  if(currentConversationId) {
-    setInterval(() => {
-      const box = document.getElementById('chatPopupBox');
-      if(box.style.display === 'flex') {
-        loadCustomerMessages();
-      }
-    }, 3000);
+  // Supabase Realtime para sa Customer Chat (On-time update kapag nag-reply ang admin)
+  function setupCustomerRealtimeChat() {
+    if (!currentConversationId) return;
+    if (chatRealtimeChannel) {
+      supabaseClient.removeChannel(chatRealtimeChannel);
+    }
+
+    chatRealtimeChannel = supabaseClient
+      .channel('customer-chat-' + currentConversationId)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `conversation_id=eq.${currentConversationId}`
+      }, (payload) => {
+        loadCustomerMessages(); // Kusang mag-a-update ang chat box nang hindi nagre-refresh
+      })
+      .subscribe();
   }
 
   async function loadSettings() {
@@ -1184,6 +1201,7 @@
 
   if(currentConversationId) {
     loadCustomerMessages();
+    setupCustomerRealtimeChat();
   }
 
   setInterval(updateLiveClock, 1000);
