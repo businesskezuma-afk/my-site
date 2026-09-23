@@ -264,7 +264,7 @@
 
   .chat-popup-box {
     position: fixed; bottom: 102px; right: 24px;
-    width: 335px; background: var(--surface-soft);
+    width: 350px; background: var(--surface-soft);
     border: 1px solid var(--border-light); border-radius: 16px;
     box-shadow: 0 15px 40px rgba(0,0,0,0.8);
     display: none; flex-direction: column; overflow: hidden;
@@ -278,8 +278,25 @@
   .chat-header-title { font-size: 12px; font-weight: 900; color: #fff; display: flex; align-items: center; gap: 8px; letter-spacing: 0.3px; }
   .chat-close-btn { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; font-weight: bold; transition: 0.2s; }
   .chat-close-btn:hover { color: #fff; }
-  .chat-body { padding: 16px; height: 250px; overflow-y: auto; font-size: 12px; color: #ccc; line-height: 1.5; background: #070b09; display: flex; flex-direction: column; gap: 10px; }
-  .chat-agent-msg { background: var(--surface); padding: 11px 14px; border-radius: 11px; border: 1px solid var(--border); margin-bottom: 4px; color: #e2e8f5; }
+  .chat-body { padding: 14px; height: 280px; overflow-y: auto; font-size: 11px; color: #ccc; line-height: 1.5; background: #070b09; display: flex; flex-direction: column; gap: 10px; }
+  .chat-agent-msg { background: var(--surface); padding: 11px 14px; border-radius: 11px; border: 1px solid var(--border); color: #e2e8f5; }
+  
+  .chat-order-card {
+    background: linear-gradient(135deg, rgba(0,213,100,0.1) 0%, rgba(10,15,13,0.95) 100%);
+    border: 1px solid rgba(0,213,100,0.3); border-radius: 12px;
+    padding: 12px; margin: 4px 0; color: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  }
+  .chat-order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; }
+  .chat-order-title { font-size: 11px; font-weight: 900; color: var(--green-light); display: flex; align-items: center; gap: 5px; }
+  .chat-order-code { background: rgba(0,213,100,0.2); color: var(--green-light); padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: bold; }
+  .chat-order-row { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px; }
+  .chat-order-label { color: var(--muted); }
+  .chat-order-val { font-weight: bold; color: #eee; }
+  .chat-account-details-box {
+    margin-top: 8px; background: rgba(0,0,0,0.5); border: 1px dashed rgba(0,213,100,0.4);
+    border-radius: 8px; padding: 8px; font-size: 10px; color: #00e676;
+  }
+
   .chat-footer { padding: 14px; background: var(--surface); border-top: 1px solid var(--border); display: flex; gap: 8px; }
   .chat-input { flex: 1; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border-light); border-radius: 9px; color: #fff; font-size: 11px; outline: none; transition: 0.2s; }
   .chat-input:focus { border-color: var(--green); }
@@ -500,11 +517,11 @@
   </div>
   <div class="chat-body" id="chatBodyContainer">
     <div class="chat-agent-msg">
-      Hello! Do you have any questions about our accounts or items? Leave a message here and we will reply to you right away! 👇
+      Hello! Send your <b>Order Code</b> (e.g. ORD-XXXXXX) here to check your order details and verify items instantly! 👇
     </div>
   </div>
   <div class="chat-footer">
-    <input type="text" id="chatInputMsg" class="chat-input" placeholder="Type a message..." onkeydown="if(event.key==='Enter') sendCustomerMessage()">
+    <input type="text" id="chatInputMsg" class="chat-input" placeholder="Type Order Code or message..." onkeydown="if(event.key==='Enter') sendCustomerMessage()">
     <button class="chat-send-btn" onclick="sendCustomerMessage()">Send</button>
   </div>
 </div>
@@ -554,7 +571,7 @@
       <div class="order-id-highlight" id="successOrderCode">ORD-XXXXXX</div>
       
       <div class="order-instruction-box">
-        <b>PLEASE NOTE:</b> Copy or screenshot your <b>Order Code</b> above. Send it to our <a href="https://www.facebook.com/mark.bnsacc1" target="_blank" style="color:#00e676; text-decoration:underline;">Main Facebook</a> or <a href="https://www.facebook.com/profile.php?id=61594901001557" target="_blank" style="color:#00e676; text-decoration:underline;">Second Facebook</a> along with your payment proof so your transaction can be processed immediately!
+        <b>PLEASE NOTE:</b> Copy your <b>Order Code</b> and send it to our <b>Live Support Chat</b> to automatically view your order status and account details!
       </div>
 
       <button class="buy-btn" onclick="closeCheckoutModal()">DONE / CLOSE</button>
@@ -589,6 +606,8 @@
   let selectedCheckoutItem = null;
   let currentConversationId = localStorage.getItem('chat_conv_id');
   let chatRealtimeChannel = null;
+  let orderRealtimeChannel = null;
+  let trackedOrderCode = localStorage.getItem('tracked_order_code');
   let inactivityTimer = null;
 
   const tickerMessages = [
@@ -612,6 +631,9 @@
         loadCustomerMessages();
       }
       setupCustomerRealtimeChat();
+      if(trackedOrderCode) {
+        setupOrderRealtimeListener(trackedOrderCode);
+      }
       resetInactivityTimer();
     }
   }
@@ -636,7 +658,7 @@
         if (container) {
           container.innerHTML = `
             <div class="chat-agent-msg">
-              Session expired due to 10 minutes of inactivity. Past messages have been cleared. Start a new conversation anytime! 👇
+              Session expired due to 10 minutes of inactivity. Past messages cleared. Send your Order Code anytime! 👇
             </div>
           `;
         }
@@ -644,35 +666,29 @@
     }, 10 * 60 * 1000);
   }
 
-  async function sendCustomerMessage() {
-    const input = document.getElementById('chatInputMsg');
-    const msg = input.value.trim();
-    if(!msg) return;
+  async function sendCustomerMessageCustomText(textToSend, isSystemAuto = false) {
+    if(!textToSend) return;
 
     try {
-      // 1. Siguraduhing may conversation ID, kung wala ay gagawa muna sa 'conversations' table
       if(!currentConversationId) {
         currentConversationId = 'CONV-' + Math.random().toString(36).substring(2, 8).toUpperCase();
         
         const { error: convError } = await supabaseClient.from('conversations').insert([{
           id: currentConversationId,
-          customer_name: 'Customer ' + currentConversationId.split('-')[1],
+          customer_name: document.getElementById("orderBuyerName")?.value.trim() || ('Customer ' + currentConversationId.split('-')[1]),
           status: 'Open',
-          last_message: msg,
+          last_message: textToSend,
           updated_at: new Date()
         }]);
         
         if (convError) {
-          console.error("Error creating conversation:", convError);
-          alert("Error Conv: " + JSON.stringify(convError));
-          currentConversationId = null; // I-reset para maulit sakaling nagka-error
+          currentConversationId = null;
           return;
         }
         
         localStorage.setItem('chat_conv_id', currentConversationId);
         setupCustomerRealtimeChat();
       } else {
-        // I-verify kung talagang nasa database ang conversation na ito para maiwasan ang foreign key violation
         const { data: existingConv } = await supabaseClient
           .from('conversations')
           .select('id')
@@ -680,18 +696,16 @@
           .maybeSingle();
 
         if (!existingConv) {
-          // Kung wala sa database, gumawa ulit gamit ang bagong ID
           currentConversationId = 'CONV-' + Math.random().toString(36).substring(2, 8).toUpperCase();
           const { error: convError } = await supabaseClient.from('conversations').insert([{
             id: currentConversationId,
-            customer_name: 'Customer ' + currentConversationId.split('-')[1],
+            customer_name: document.getElementById("orderBuyerName")?.value.trim() || ('Customer ' + currentConversationId.split('-')[1]),
             status: 'Open',
-            last_message: msg,
+            last_message: textToSend,
             updated_at: new Date()
           }]);
 
           if (convError) {
-            alert("Error Re-creating Conv: " + JSON.stringify(convError));
             currentConversationId = null;
             return;
           }
@@ -700,31 +714,127 @@
         }
       }
 
-      // 2. Isunod i-insert ang mensahe sa 'messages' table
-      const { error: msgError } = await supabaseClient.from('messages').insert([{
-        conversation_id: currentConversationId,
-        sender: 'customer',
-        message: msg
-      }]);
+      let finalMessageContent = textToSend;
+      const cleanText = textToSend.trim().toUpperCase();
+      
+      if (cleanText.startsWith("ORD-") && !isSystemAuto) {
+        trackedOrderCode = cleanText;
+        localStorage.setItem('tracked_order_code', trackedOrderCode);
+        setupOrderRealtimeListener(trackedOrderCode);
 
-      if (msgError) {
-        console.error("Error sending message:", msgError);
-        alert("Error Msg: " + JSON.stringify(msgError));
-        return;
+        const { data: orderData } = await supabaseClient
+          .from('orders')
+          .select('*')
+          .eq('order_id', cleanText)
+          .maybeSingle();
+
+        if (orderData) {
+          const { data: accData } = await supabaseClient
+            .from('accounts')
+            .select('*')
+            .eq('id', orderData.item_id)
+            .maybeSingle();
+
+          let accountDetailsHtml = "";
+          if (accData) {
+            accountDetailsHtml = `
+              <div class="chat-account-details-box">
+                <b>📦 ITEM / ACCOUNT DETAILS:</b><br>
+                • Username/Info: <b>${escapeHTML(accData.account || accData.dgPlatform || 'N/A')}</b><br>
+                • Status: Ready for verification<br>
+              </div>
+            `;
+          } else {
+            accountDetailsHtml = `
+              <div class="chat-account-details-box">
+                • Item ID: <b>${escapeHTML(orderData.item_id)}</b>
+              </div>
+            `;
+          }
+
+          let statusColor = "#ffbd2e";
+          if(orderData.status === 'Completed') statusColor = "#00e676";
+          if(orderData.status === 'Cancelled') statusColor = "#ff5f56";
+
+          finalMessageContent = `
+            <div class="chat-order-card">
+              <div class="chat-order-header">
+                <span class="chat-order-title">🛒 ORDER VERIFIED</span>
+                <span class="chat-order-code">${escapeHTML(orderData.order_id)}</span>
+              </div>
+              <div class="chat-order-row"><span class="chat-order-label">Buyer Name:</span> <span class="chat-order-val">${escapeHTML(orderData.customer_name)}</span></div>
+              <div class="chat-order-row"><span class="chat-order-label">Game/Item:</span> <span class="chat-order-val">${escapeHTML(orderData.game)}</span></div>
+              <div class="chat-order-row"><span class="chat-order-label">Price:</span> <span class="chat-order-val" style="color:var(--green-light);">${escapeHTML(orderData.price)}</span></div>
+              <div class="chat-order-row"><span class="chat-order-label">Payment:</span> <span class="chat-order-val">${escapeHTML(orderData.payment_method)}</span></div>
+              <div class="chat-order-row"><span class="chat-order-label">Status:</span> <span class="chat-order-val" style="color:${statusColor};">${escapeHTML(orderData.status)}</span></div>
+              ${accountDetailsHtml}
+            </div>
+          `;
+        }
       }
 
+      const { error: msgError } = await supabaseClient.from('messages').insert([{
+        conversation_id: currentConversationId,
+        sender: isSystemAuto ? 'system' : 'customer',
+        message: finalMessageContent
+      }]);
+
+      if (msgError) return;
+
       await supabaseClient.from('conversations').update({
-        last_message: msg,
+        last_message: textToSend.startsWith("ORD-") ? `Checked Order: ${textToSend}` : textToSend,
         updated_at: new Date()
       }).eq('id', currentConversationId);
 
-      input.value = '';
       loadCustomerMessages();
       resetInactivityTimer();
     } catch (err) {
       console.error("Unexpected error:", err);
-      alert("Unexpected Error: " + err.message);
     }
+  }
+
+  function setupOrderRealtimeListener(orderId) {
+    if (!orderId) return;
+    if (orderRealtimeChannel) {
+      supabaseClient.removeChannel(orderRealtimeChannel);
+    }
+
+    orderRealtimeChannel = supabaseClient
+      .channel('order-status-' + orderId)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'orders',
+        filter: `order_id=eq.${orderId}`
+      }, async (payload) => {
+        const updatedOrder = payload.new;
+        if (updatedOrder && (updatedOrder.status === 'Completed' || updatedOrder.status === 'Cancelled')) {
+          let statusText = updatedOrder.status === 'Completed' ? '✅ COMPLETED 🎉' : '❌ CANCELLED';
+          let statusColor = updatedOrder.status === 'Completed' ? '#00e676' : '#ff5f56';
+          
+          const notificationMsg = `
+            <div class="chat-order-card" style="border-color: ${statusColor};">
+              <div class="chat-order-header">
+                <span class="chat-order-title" style="color:${statusColor};">NOTIFICATION: ORDER ${updatedOrder.status.toUpperCase()}</span>
+                <span class="chat-order-code">${escapeHTML(updatedOrder.order_id)}</span>
+              </div>
+              <div class="chat-order-row"><span class="chat-order-label">Status Update:</span> <span class="chat-order-val" style="color:${statusColor};">${statusText}</span></div>
+              <div class="chat-order-row"><span class="chat-order-label">Game/Item:</span> <span class="chat-order-val">${escapeHTML(updatedOrder.game)}</span></div>
+              <div style="margin-top:6px; font-size:10px; color:#aaa;">Your order has been updated by admin. Thank you for transacting with Kezrblx Store!</div>
+            </div>
+          `;
+          await sendCustomerMessageCustomText(notificationMsg, true);
+        }
+      })
+      .subscribe();
+  }
+
+  async function sendCustomerMessage() {
+    const input = document.getElementById('chatInputMsg');
+    const msg = input.value.trim();
+    if(!msg) return;
+    await sendCustomerMessageCustomText(msg, false);
+    input.value = '';
   }
 
   async function loadCustomerMessages() {
@@ -739,13 +849,19 @@
     if(data) {
       container.innerHTML = `
         <div class="chat-agent-msg">
-          Hello! Do you have any questions about our accounts or items? Leave a message here and we will reply to you right away! 👇
+          Hello! Send your <b>Order Code</b> (e.g. ORD-XXXXXX) here to check your order details and verify items instantly! 👇
         </div>
-      ` + data.map(m => `
-        <div style="align-self: ${m.sender === 'customer' ? 'flex-end' : 'flex-start'}; background: ${m.sender === 'customer' ? '#00d564; color:#000;' : '#111814; color:#fff;'}; border: ${m.sender === 'customer' ? 'none' : '1px solid #17221c;'}; padding: 9px 13px; border-radius: 10px; max-width: 80%; word-break: break-word; margin-bottom: 4px; font-weight: ${m.sender === 'customer' ? '600' : 'normal'};">
-          ${escapeHTML(m.message)}
-        </div>
-      `).join('');
+      ` + data.map(m => {
+        const isHtmlCard = m.message.includes('chat-order-card');
+        if (isHtmlCard) {
+          return `<div style="align-self: flex-start; width: 100%; margin-bottom: 4px;">${m.message}</div>`;
+        }
+        return `
+          <div style="align-self: ${m.sender === 'customer' ? 'flex-end' : 'flex-start'}; background: ${m.sender === 'customer' ? '#00d564; color:#000;' : '#111814; color:#fff;'}; border: ${m.sender === 'customer' ? 'none' : '1px solid #17221c;'}; padding: 9px 13px; border-radius: 10px; max-width: 80%; word-break: break-word; margin-bottom: 4px; font-weight: ${m.sender === 'customer' ? '600' : 'normal'};">
+            ${escapeHTML(m.message)}
+          </div>
+        `;
+      }).join('');
       container.scrollTop = container.scrollHeight;
     }
   }
@@ -894,18 +1010,24 @@
   async function submitOnSiteOrder(event) {
     event.preventDefault();
     const uniqueOrderCode = "ORD-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+    const buyerName = document.getElementById("orderBuyerName").value.trim();
+    const contactInfo = document.getElementById("orderContact").value.trim();
+    const paymentMethod = document.getElementById("orderPaymentMethod").value;
+
     const orderData = {
       order_id: uniqueOrderCode,
-      customer_name: document.getElementById("orderBuyerName").value.trim(),
-      contact_info: document.getElementById("orderContact").value.trim(),
+      customer_name: buyerName,
+      contact_info: contactInfo,
       item_id: selectedCheckoutItem.id,
       game: selectedCheckoutItem.game,
       price: selectedCheckoutItem.price,
-      payment_method: document.getElementById("orderPaymentMethod").value,
+      payment_method: paymentMethod,
       status: 'Processing',
       date_added: new Date().toISOString().split('T')[0]
     };
+
     await supabaseClient.from('orders').insert([orderData]);
+
     document.getElementById("modeOnSite").style.display = "none";
     document.getElementById("successOrderCode").textContent = uniqueOrderCode;
     document.getElementById("orderSuccessView").style.display = "block";
@@ -1264,6 +1386,9 @@
   if(currentConversationId) {
     loadCustomerMessages();
     setupCustomerRealtimeChat();
+    if(trackedOrderCode) {
+      setupOrderRealtimeListener(trackedOrderCode);
+    }
     resetInactivityTimer();
   }
 
