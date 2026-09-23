@@ -559,23 +559,42 @@
       const { error } = await supabaseClient.from('orders').update({ status: newStatus }).eq('order_id', orderId);
       if(error) throw error;
 
-      if (newStatus === 'Completed' && itemId && itemId !== 'N/A') {
-        const { data: updatedData, error: accountError } = await supabaseClient
-          .from('accounts')
-          .update({ status: 'Sold' })
-          .eq('id', itemId)
-          .select();
-
-        if (accountError || !updatedData || updatedData.length === 0) {
-          await supabaseClient
+      if (newStatus === 'Completed') {
+        if (itemId && itemId !== 'N/A') {
+          const { data: updatedData, error: accountError } = await supabaseClient
             .from('accounts')
             .update({ status: 'Sold' })
-            .ilike('id', itemId);
+            .eq('id', itemId)
+            .select();
+
+          if (accountError || !updatedData || updatedData.length === 0) {
+            await supabaseClient
+              .from('accounts')
+              .update({ status: 'Sold' })
+              .ilike('id', itemId);
+          }
+        }
+
+        const { data: orderDetails } = await supabaseClient
+          .from('orders')
+          .select('*')
+          .eq('order_id', orderId)
+          .maybeSingle();
+
+        if (orderDetails) {
+          await supabaseClient.from('vouches').insert([{
+            customer_name: orderDetails.customer_name || 'Verified Buyer',
+            game: orderDetails.game || 'Digital Goods',
+            rating: 5,
+            feedback: `Auto-verified: Smooth transaction for order ${orderId}! Highly recommended.`,
+            status: 'Approved'
+          }]);
         }
       }
 
       loadOrdersAdmin();
       loadInventoryAdmin();
+      loadVouchesAdmin();
     } catch(err) {
       alert('Error updating order: ' + err.message);
     }
