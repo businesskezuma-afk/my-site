@@ -187,11 +187,28 @@
     return String(value ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
   }
 
+  // Initial load
   loadConversations();
+
+  // Supabase Realtime Subscription (Instant Sync)
+  supabaseClient
+    .channel('admin-live-chat')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
+      loadConversations();
+    })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+      loadConversations();
+      if(activeConvId && payload.new.conversation_id === activeConvId) {
+        loadMessages();
+      }
+    })
+    .subscribe();
+
+  // Fallback Polling every 4 seconds
   setInterval(() => {
     loadConversations();
     if(activeConvId) loadMessages();
-  }, 3000);
+  }, 4000);
 </script>
 </body>
 </html>
