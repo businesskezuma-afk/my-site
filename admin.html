@@ -6,54 +6,78 @@
 <title>Admin Panel - Digital & Gaming Marketplace</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff0033' font-family='Arial, sans-serif' font-weight='900' font-size='75'>K</text></svg>">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-  body { background: #090909; color: #f5f5f5; min-height: 100vh; padding: 25px; }
-  .container { max-width: 1200px; margin: 0 auto; }
-  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #202020; padding-bottom: 15px; flex-wrap: wrap; gap: 15px; }
-  .header h1 { color: #00d564; font-size: 22px; font-weight: 900; }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', Arial, sans-serif; }
+  :root {
+    --bg: #050706; --surface: #0a0f0d; --surface-soft: #111814;
+    --border: #17221c; --border-light: #22332a; --text: #eef4f0;
+    --muted: #7c8f85; --green: #00d564; --green-light: #00e676;
+    --green-soft: rgba(0,213,100,.12); --danger: #ff5f56;
+  }
+  body { background: radial-gradient(circle at top center, rgba(0,213,100,.06), transparent 40%), var(--bg); color: var(--text); min-height: 100vh; padding: 30px 20px; }
+  .container { max-width: 1240px; margin: 0 auto; }
+  
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+  .header h1 { color: #fff; font-size: 24px; font-weight: 900; letter-spacing: -0.5px; }
+  .header h1 span { color: var(--green-light); text-shadow: 0 0 20px rgba(0,213,100,0.3); }
   .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
   
-  .btn { padding: 9px 14px; background: #161616; border: 1px solid #333; color: #fff; font-size: 11px; font-weight: bold; border-radius: 8px; cursor: pointer; text-decoration: none; transition: 0.2s; position: relative; z-index: 5; display: inline-flex; align-items: center; gap: 5px; }
-  .btn:hover { background: #222; border-color: #555; }
-  .btn.primary { background: #00d564; color: #000; border-color: #00d564; font-weight: 900; }
-  .btn.primary:hover { background: #00e676; }
-  .btn.danger { background: rgba(255,95,86,0.1); color: #ff5f56; border-color: rgba(255,95,86,0.3); }
+  .btn { padding: 10px 16px; background: var(--surface-soft); border: 1px solid var(--border-light); color: #fff; font-size: 11px; font-weight: 800; border-radius: 10px; cursor: pointer; text-decoration: none; transition: 0.2s; position: relative; z-index: 5; display: inline-flex; align-items: center; gap: 6px; }
+  .btn:hover { background: var(--border-light); border-color: var(--green); transform: translateY(-1px); }
+  .btn.primary { background: var(--green); color: #000; border-color: var(--green); font-weight: 900; box-shadow: 0 4px 15px rgba(0,213,100,0.25); }
+  .btn.primary:hover { background: var(--green-light); box-shadow: 0 6px 20px rgba(0,213,100,0.35); }
+  .btn.danger { background: rgba(255,95,86,0.1); color: var(--danger); border-color: rgba(255,95,86,0.3); }
   .btn.danger:hover { background: rgba(255,95,86,0.2); }
 
-  .section-title { font-size: 14px; font-weight: 900; color: #fff; margin-bottom: 12px; border-left: 3px solid #00d564; padding-left: 8px; text-transform: uppercase; }
-  .card { background: #101010; border: 1px solid #202020; border-radius: 12px; padding: 20px; margin-bottom: 25px; }
-  
-  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 15px; }
-  .form-group { margin-bottom: 12px; }
-  .form-group label { display: block; margin-bottom: 5px; font-size: 10px; color: #aaa; font-weight: bold; text-transform: uppercase; }
-  .form-control { width: 100%; padding: 11px; background: #141414; border: 1px solid #292929; border-radius: 8px; color: #fff; font-size: 13px; outline: none; }
-  .form-control:focus { border-color: #00d564; }
-  
-  input[type="file"] { color: #aaa; padding: 8px; background: #141414; border: 1px solid #292929; border-radius: 8px; font-size: 12px; cursor: pointer; width: 100%; }
-  input[type="file"]::file-selector-button { background: #222; color: #fff; border: 1px solid #444; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 10px; transition: 0.2s; }
-  input[type="file"]::file-selector-button:hover { background: #333; }
+  /* Modern Overview Stats Cards */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 30px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; transition: 0.2s; }
+  .stat-card:hover { border-color: var(--border-light); box-shadow: 0 8px 25px rgba(0,0,0,0.4); transform: translateY(-2px); }
+  .stat-label { font-size: 10px; color: var(--muted); font-weight: 800; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
+  .stat-value { font-size: 24px; font-weight: 900; color: #fff; }
+  .stat-value.green { color: var(--green-light); text-shadow: 0 0 10px rgba(0,213,100,0.2); }
 
-  .divider { border-top: 1px dashed #222; margin: 20px 0; }
+  .section-title { font-size: 13px; font-weight: 900; color: #fff; margin-bottom: 16px; border-left: 3px solid var(--green); padding-left: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+  
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px; }
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; margin-bottom: 6px; font-size: 10px; color: var(--muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; }
+  .form-control { width: 100%; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border-light); border-radius: 10px; color: #fff; font-size: 12px; outline: none; transition: 0.2s; }
+  .form-control:focus { border-color: var(--green); box-shadow: 0 0 12px rgba(0,213,100,0.15); background: #070b09; }
+  
+  input[type="file"] { color: var(--muted); padding: 9px; background: var(--bg); border: 1px solid var(--border-light); border-radius: 10px; font-size: 11px; cursor: pointer; width: 100%; }
+  input[type="file"]::file-selector-button { background: var(--surface-soft); color: #fff; border: 1px solid var(--border-light); padding: 6px 14px; border-radius: 7px; cursor: pointer; font-weight: bold; margin-right: 10px; transition: 0.2s; }
+  input[type="file"]::file-selector-button:hover { background: var(--green); color: #000; border-color: var(--green); }
+
+  .divider { border-top: 1px dashed var(--border-light); margin: 24px 0; }
 
   table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
-  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #1c1c1c; position: relative; }
-  th { color: #777; font-size: 10px; text-transform: uppercase; background: #141414; }
-  td { color: #ddd; }
+  th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); position: relative; }
+  th { color: var(--muted); font-size: 10px; text-transform: uppercase; font-weight: 800; background: var(--surface-soft); letter-spacing: 0.5px; }
+  td { color: #ccc; }
+  tr:hover td { background: rgba(0,213,100,0.02); color: #fff; }
 
-  .status-badge { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
-  .status-available { background: rgba(0,213,100,0.1); color: #00d564; border: 1px solid rgba(0,213,100,0.3); }
-  .status-sold { background: rgba(232,154,36,0.1); color: #e89a24; border: 1px solid rgba(232,154,36,0.3); }
-  .status-pending { background: rgba(255,189,46,0.1); color: #ffbd2e; border: 1px solid rgba(255,189,46,0.3); }
-  .status-completed { background: rgba(0,213,100,0.15); color: #00e676; border: 1px solid rgba(0,213,100,0.4); }
-  .status-cancelled { background: rgba(255,95,86,0.15); color: #ff5f56; border: 1px solid rgba(255,95,86,0.4); }
-  .status-hidden { background: rgba(255,189,46,0.15); color: #ffbd2e; border: 1px solid rgba(255,189,46,0.4); }
+  .status-badge { display: inline-block; padding: 5px 10px; border-radius: 999px; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
+  .status-available { background: var(--green-soft); color: var(--green-light); border: 1px solid rgba(0,213,100,0.2); }
+  .status-sold { background: rgba(232,154,36,0.1); color: #e89a24; border: 1px solid rgba(232,154,36,0.2); }
+  .status-pending { background: rgba(255,189,46,0.1); color: #ffbd2e; border: 1px solid rgba(255,189,46,0.2); }
+  .status-completed { background: var(--green-soft); color: var(--green-light); border: 1px solid rgba(0,213,100,0.3); }
+  .status-cancelled { background: rgba(255,95,86,0.1); color: var(--danger); border: 1px solid rgba(255,95,86,0.2); }
+  .status-hidden { background: rgba(255,189,46,0.1); color: #ffbd2e; border: 1px solid rgba(255,189,46,0.2); }
 
-  .site-footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #1c1c1c; color: #555; font-size: 11px; font-weight: bold; }
+  .site-footer { text-align: center; margin-top: 45px; padding-top: 22px; border-top: 1px solid var(--border); color: var(--muted); font-size: 11px; font-weight: bold; letter-spacing: 0.3px; }
 
-  .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #090909; display: flex; justify-content: center; align-items: center; z-index: 9999; }
-  .login-box { background: #101010; border: 1px solid #202020; border-radius: 14px; padding: 30px; width: 100%; max-width: 400px; text-align: center; }
-  .login-box h2 { color: #00d564; font-size: 20px; margin-bottom: 5px; font-weight: 900; }
-  .login-box p { color: #888; font-size: 11px; margin-bottom: 20px; }
+  .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,7,6,0.95); display: flex; justify-content: center; align-items: center; z-index: 9999; backdrop-filter: blur(8px); }
+  .login-box { background: var(--surface-soft); border: 2px solid var(--green); border-radius: 18px; padding: 32px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 30px rgba(0,213,100,0.2); }
+  .login-box h2 { color: var(--green-light); font-size: 20px; margin-bottom: 6px; font-weight: 900; text-transform: uppercase; }
+  .login-box p { color: var(--muted); font-size: 11px; margin-bottom: 22px; line-height: 1.5; }
+
+  @media(max-width: 900px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media(max-width: 600px) {
+    .stats-grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -61,18 +85,18 @@
 <div id="loginOverlay" class="login-overlay">
   <div class="login-box">
     <h2>ADMIN LOGIN</h2>
-    <p>I-type ang iyong Supabase admin account</p>
+    <p>I-type ang iyong Supabase admin account credentials</p>
     <form onsubmit="handleLogin(event)">
       <input type="email" id="adminEmail" class="form-control" placeholder="Admin Email" style="margin-bottom: 12px;" required>
-      <input type="password" id="adminPassword" class="form-control" placeholder="Password" style="margin-bottom: 15px;" required>
-      <button type="submit" class="btn primary" id="loginBtn" style="width: 100%; padding: 12px;">LOG IN</button>
+      <input type="password" id="adminPassword" class="form-control" placeholder="Password" style="margin-bottom: 18px;" required>
+      <button type="submit" class="btn primary" id="loginBtn" style="width: 100%; padding: 12px; justify-content: center;">LOG IN</button>
     </form>
   </div>
 </div>
 
 <div class="container" id="adminContent" style="display:none;">
   <div class="header">
-    <h1>ADMIN PANEL</h1>
+    <h1>ADMIN <span>PANEL</span></h1>
     <div class="header-actions">
       <a href="admin-chat.html" class="btn primary">💬 Live Chat Dashboard</a>
       <a href="index.html" class="btn">View Marketplace</a>
@@ -80,18 +104,38 @@
     </div>
   </div>
 
+  <!-- Overview Statistics Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Available Items</div>
+      <div class="stat-value green" id="statTotalItems">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Pending Orders</div>
+      <div class="stat-value" id="statPendingOrders">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Completed Sales</div>
+      <div class="stat-value green" id="statCompletedSales">₱0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Open Support Chats</div>
+      <div class="stat-value" id="statOpenChats">0</div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="section-title">Shop Controls & Settings</div>
     <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
       <div>
-        <label style="font-size: 10px; color: #888; display: block; margin-bottom: 5px;">SHOP STATUS:</label>
+        <label style="font-size: 10px; color: var(--muted); display: block; margin-bottom: 6px; font-weight: 800;">SHOP STATUS:</label>
         <select id="shopStatusSelect" class="form-control" onchange="updateShopStatus(this.value)">
           <option value="online">Online & Ready</option>
           <option value="offline">Offline (Message Only)</option>
         </select>
       </div>
       <div style="flex: 1; min-width: 250px;">
-        <label style="font-size: 10px; color: #888; display: block; margin-bottom: 5px;">PROMO BANNER TEXT:</label>
+        <label style="font-size: 10px; color: var(--muted); display: block; margin-bottom: 6px; font-weight: 800;">PROMO BANNER TEXT:</label>
         <div style="display: flex; gap: 8px;">
           <input type="text" id="bannerInput" class="form-control" placeholder="Enter announcement banner text...">
           <button class="btn primary" onclick="saveBanner()">Save</button>
@@ -102,7 +146,7 @@
 
   <div class="card">
     <div class="section-title">Manage On-Site Orders</div>
-    <div style="margin-bottom: 15px;">
+    <div style="margin-bottom: 16px;">
       <input type="text" id="orderSearchInput" class="form-control" placeholder="🔎 Search by Order Code (e.g. ORD-XXXXXX)..." oninput="filterOrdersAdmin()">
     </div>
     <div style="overflow-x: auto;">
@@ -120,7 +164,7 @@
           </tr>
         </thead>
         <tbody id="ordersTableBody">
-          <tr><td colspan="8" style="text-align: center; color: #666;">Loading orders...</td></tr>
+          <tr><td colspan="8" style="text-align: center; color: var(--muted);">Loading orders...</td></tr>
         </tbody>
       </table>
     </div>
@@ -157,7 +201,7 @@
         <div class="form-group">
           <label>Discount Percentage (%) [e.g. 20, 30, 50]</label>
           <input type="number" id="itemDiscountPercent" class="form-control" placeholder="Leave blank or 0 if no discount" min="0" max="100" oninput="calculateDiscountPreview()">
-          <small style="color: #aaa; display: block; margin-top: 5px;">Computed Discounted Price: <span id="previewDiscountedPrice" style="color: #00d564; font-weight: bold;">₱0</span></small>
+          <small style="color: var(--muted); display: block; margin-top: 6px;">Computed Discounted Price: <span id="previewDiscountedPrice" style="color: var(--green-light); font-weight: bold;">₱0</span></small>
         </div>
         <div class="form-group">
           <label>Listing Type</label>
@@ -182,7 +226,7 @@
       <div class="divider"></div>
       
       <div id="bloxFruitsFields">
-        <div class="section-title" style="font-size: 12px; border-left-color: #00e676; margin-bottom: 10px;">Blox Fruits Details</div>
+        <div class="section-title" style="font-size: 11px; border-left-color: var(--green-light); margin-bottom: 12px;">Blox Fruits Details</div>
         <div class="form-grid">
           <div class="form-group"><label>Level</label><input type="text" id="bfLevel" class="form-control" placeholder="e.g. 2550"></div>
           <div class="form-group"><label>Bounty</label><input type="text" id="bfBounty" class="form-control" placeholder="e.g. 2.5M"></div>
@@ -195,7 +239,7 @@
       </div>
 
       <div id="brainrotFields" style="display: none;">
-        <div class="section-title" style="font-size: 12px; border-left-color: #00e676; margin-bottom: 10px;">Steal A Brainrot Details</div>
+        <div class="section-title" style="font-size: 11px; border-left-color: var(--green-light); margin-bottom: 12px;">Steal A Brainrot Details</div>
         <div class="form-grid">
           <div class="form-group"><label>Money</label><input type="text" id="brMoney" class="form-control" placeholder="e.g. 10M"></div>
           <div class="form-group"><label>Steals</label><input type="text" id="brSteals" class="form-control" placeholder="e.g. 5K"></div>
@@ -211,7 +255,7 @@
       </div>
 
       <div id="eggFields" style="display: none;">
-        <div class="section-title" style="font-size: 12px; border-left-color: #00e676; margin-bottom: 10px;">Steal An Egg Details</div>
+        <div class="section-title" style="font-size: 11px; border-left-color: var(--green-light); margin-bottom: 12px;">Steal An Egg Details</div>
         <div class="form-grid">
           <div class="form-group"><label>Money</label><input type="text" id="eggMoney" class="form-control" placeholder="e.g. 1M"></div>
           <div class="form-group"><label>Money / Second</label><input type="text" id="eggMoneySec" class="form-control" placeholder="e.g. 10k"></div>
@@ -220,7 +264,7 @@
       </div>
 
       <div id="minecraftFields" style="display: none;">
-        <div class="section-title" style="font-size: 12px; border-left-color: #00e676; margin-bottom: 10px;">Minecraft Details</div>
+        <div class="section-title" style="font-size: 11px; border-left-color: var(--green-light); margin-bottom: 12px;">Minecraft Details</div>
         <div class="form-grid">
           <div class="form-group"><label>Account Type / Access</label><input type="text" id="mcAccess" class="form-control" placeholder="e.g. Full Access / Email Changeable"></div>
           <div class="form-group"><label>Platform</label><input type="text" id="mcPlatform" class="form-control" placeholder="e.g. Java & Bedrock / PC"></div>
@@ -230,14 +274,14 @@
       </div>
 
       <div id="digitalGoodsFields" style="display: none;">
-        <div class="section-title" style="font-size: 12px; border-left-color: #00e676; margin-bottom: 10px;">Digital Goods / Accounts Details</div>
+        <div class="section-title" style="font-size: 11px; border-left-color: var(--green-light); margin-bottom: 12px;">Digital Goods / Accounts Details</div>
         <div class="form-grid">
           <div class="form-group"><label>Platform / Service</label><input type="text" id="dgPlatform" class="form-control" placeholder="e.g. Netflix, TikTok, Spotify"></div>
           <div class="form-group"><label>Inclusions / Subscription</label><input type="text" id="dgInclusions" class="form-control" placeholder="e.g. 1 Month UHD / 10k Followers"></div>
         </div>
       </div>
 
-      <div style="display: flex; gap: 10px; margin-top: 10px;">
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
         <button type="submit" class="btn primary" id="publishBtn">PUBLISH LISTING</button>
         <button type="button" class="btn" id="cancelEditBtn" style="display:none;" onclick="resetForm()">Cancel Edit</button>
       </div>
@@ -260,7 +304,7 @@
           </tr>
         </thead>
         <tbody id="vouchesTableBody">
-          <tr><td colspan="7" style="text-align: center; color: #666;">Loading vouches...</td></tr>
+          <tr><td colspan="7" style="text-align: center; color: var(--muted);">Loading vouches...</td></tr>
         </tbody>
       </table>
     </div>
@@ -281,7 +325,7 @@
           </tr>
         </thead>
         <tbody id="inventoryTableBody">
-          <tr><td colspan="6" style="text-align: center; color: #666;">Loading inventory...</td></tr>
+          <tr><td colspan="6" style="text-align: center; color: var(--muted);">Loading inventory...</td></tr>
         </tbody>
       </table>
     </div>
@@ -407,8 +451,40 @@
     loadOrdersAdmin();
     loadInventoryAdmin();
     loadVouchesAdmin();
+    loadOverviewStats();
     toggleGameFields();
     calculateDiscountPreview();
+  }
+
+  async function loadOverviewStats() {
+    try {
+      const { data: accountsData } = await supabaseClient.from('accounts').select('status');
+      if (accountsData) {
+        const availableCount = accountsData.filter(a => String(a.status || '').toLowerCase() === 'available').length;
+        document.getElementById('statTotalItems').textContent = availableCount;
+      }
+
+      const { data: ordersData } = await supabaseClient.from('orders').select('*');
+      if (ordersData) {
+        const pendingCount = ordersData.filter(o => String(o.status || '').toLowerCase() === 'processing').length;
+        document.getElementById('statPendingOrders').textContent = pendingCount;
+
+        const totalSales = ordersData
+          .filter(o => String(o.status || '').toLowerCase() === 'completed')
+          .reduce((acc, o) => {
+            const p = parseFloat(String(o.price || "").replace(/[^0-9.-]/g, "")) || 0;
+            return acc + p;
+          }, 0);
+        document.getElementById('statCompletedSales').textContent = '₱' + totalSales.toLocaleString("en-PH");
+      }
+
+      const { data: convData } = await supabaseClient.from('conversations').select('id');
+      if (convData) {
+        document.getElementById('statOpenChats').textContent = convData.length;
+      }
+    } catch (err) {
+      console.error('Error loading overview stats:', err);
+    }
   }
 
   async function loadOrdersAdmin() {
@@ -418,16 +494,17 @@
 
       allOrdersData = data || [];
       renderOrdersTable(allOrdersData);
+      loadOverviewStats();
     } catch(err) {
       console.error(err);
-      document.getElementById('ordersTableBody').innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ff5f56;">Error loading orders.</td></tr>`;
+      document.getElementById('ordersTableBody').innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--danger);">Error loading orders.</td></tr>`;
     }
   }
 
   function renderOrdersTable(ordersList) {
     const tbody = document.getElementById('ordersTableBody');
     if(!ordersList || ordersList.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #666;">No on-site orders found.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--muted);">No on-site orders found.</td></tr>`;
       return;
     }
 
@@ -448,9 +525,9 @@
       }
 
       const actionButtons = (dbStatus !== 'completed' && dbStatus !== 'cancelled') 
-        ? `<button class="btn primary" style="padding: 4px 8px; font-size: 10px; position: relative; z-index: 10;" onclick="updateOrderStatus('${escapeHTML(o.order_id)}', 'Completed', '${escapeHTML(o.item_id || '')}')">Complete</button>
-           <button class="btn danger" style="padding: 4px 8px; font-size: 10px; position: relative; z-index: 10; margin-left: 5px;" onclick="updateOrderStatus('${escapeHTML(o.order_id)}', 'Cancelled', '${escapeHTML(o.item_id || '')}')">Cancel</button>` 
-        : `<span style="font-size: 10px; color: #555;">No Actions</span>`;
+        ? `<button class="btn primary" style="padding: 5px 10px; font-size: 10px; position: relative; z-index: 10;" onclick="updateOrderStatus('${escapeHTML(o.order_id)}', 'Completed', '${escapeHTML(o.item_id || '')}')">Complete</button>
+           <button class="btn danger" style="padding: 5px 10px; font-size: 10px; position: relative; z-index: 10; margin-left: 5px;" onclick="updateOrderStatus('${escapeHTML(o.order_id)}', 'Cancelled', '${escapeHTML(o.item_id || '')}')">Cancel</button>` 
+        : `<span style="font-size: 10px; color: var(--muted);">No Actions</span>`;
 
       return `
         <tr>
@@ -511,7 +588,7 @@
       if(error) throw error;
 
       if(!data || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #666;">No listings found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--muted);">No listings found.</td></tr>`;
         return;
       }
 
@@ -527,21 +604,22 @@
             <td>${escapeHTML(item.listing_type || 'Account')}</td>
             <td>
               ₱${escapeHTML(item.price)}
-              ${item.old_price ? `<br><span style="text-decoration: line-through; color: #777; font-size: 10px;">₱${escapeHTML(item.old_price)}</span>` : ''}
+              ${item.old_price ? `<br><span style="text-decoration: line-through; color: var(--muted); font-size: 10px;">₱${escapeHTML(item.old_price)}</span>` : ''}
             </td>
             <td><span class="status-badge ${statusBadgeClass}">${escapeHTML(item.status)}</span></td>
             <td>
-              <button class="btn" style="padding: 5px 8px; font-size: 10px; position: relative; z-index: 10;" onclick='editItem(${JSON.stringify(item)})'>Edit / Discount</button>
-              <button class="btn" style="padding: 5px 8px; font-size: 10px; position: relative; z-index: 10;" onclick="toggleStatus('${item.id}', '${item.status}')">${item.status === 'Available' ? 'Mark Sold' : 'Mark Available'}</button>
-              <button class="btn" style="padding: 5px 8px; font-size: 10px; position: relative; z-index: 10; color: #ffbd2e; border-color: rgba(255,189,46,0.3);" onclick="toggleHideItem('${item.id}', '${item.status}')">${item.status === 'Hidden' ? 'Unhide' : 'Pause/Hide'}</button>
-              <button class="btn danger" style="padding: 5px 8px; font-size: 10px; position: relative; z-index: 10;" onclick="deleteItem('${item.id}')">Delete</button>
+              <button class="btn" style="padding: 6px 10px; font-size: 10px; position: relative; z-index: 10;" onclick='editItem(${JSON.stringify(item)})'>Edit</button>
+              <button class="btn" style="padding: 6px 10px; font-size: 10px; position: relative; z-index: 10;" onclick="toggleStatus('${item.id}', '${item.status}')">${item.status === 'Available' ? 'Mark Sold' : 'Mark Available'}</button>
+              <button class="btn" style="padding: 6px 10px; font-size: 10px; position: relative; z-index: 10; color: #ffbd2e; border-color: rgba(255,189,46,0.3);" onclick="toggleHideItem('${item.id}', '${item.status}')">${item.status === 'Hidden' ? 'Unhide' : 'Hide'}</button>
+              <button class="btn danger" style="padding: 6px 10px; font-size: 10px; position: relative; z-index: 10;" onclick="deleteItem('${item.id}')">Delete</button>
             </td>
           </tr>
         `;
       }).join('');
+      loadOverviewStats();
     } catch(err) {
       console.error(err);
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #ff5f56;">Error loading inventory.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">Error loading inventory.</td></tr>`;
     }
   }
 
@@ -552,7 +630,7 @@
       if(error) throw error;
 
       if(!data || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #666;">No customer reviews submitted yet.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--muted);">No customer reviews submitted yet.</td></tr>`;
         return;
       }
 
@@ -565,14 +643,14 @@
           <td style="max-width: 250px; word-break: break-word;">${escapeHTML(v.feedback)}</td>
           <td><span class="status-badge ${v.status === 'Approved' ? 'status-available' : 'status-pending'}">${escapeHTML(v.status)}</span></td>
           <td>
-            ${v.status === 'Pending' ? `<button class="btn primary" style="padding: 5px 8px; font-size: 10px; position: relative; z-index: 10;" onclick="approveVouch('${v.id}')">Approve</button>` : ''}
-            <button class="btn danger" style="padding: 5px 8px; font-size: 10px; position: relative; z-index: 10;" onclick="deleteVouch('${v.id}')">Delete</button>
+            ${v.status === 'Pending' ? `<button class="btn primary" style="padding: 6px 10px; font-size: 10px; position: relative; z-index: 10;" onclick="approveVouch('${v.id}')">Approve</button>` : ''}
+            <button class="btn danger" style="padding: 6px 10px; font-size: 10px; position: relative; z-index: 10;" onclick="deleteVouch('${v.id}')">Delete</button>
           </td>
         </tr>
       `).join('');
     } catch(err) {
       console.error(err);
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #ff5f56;">Error loading vouches.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--danger);">Error loading vouches.</td></tr>`;
     }
   }
 
@@ -815,6 +893,7 @@
       loadOrdersAdmin();
       loadInventoryAdmin();
       loadVouchesAdmin();
+      loadOverviewStats();
     }
   }, 30000);
 </script>
