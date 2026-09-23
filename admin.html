@@ -166,6 +166,13 @@
           </select>
         </div>
         <div class="form-group">
+          <label>Featured Listing?</label>
+          <select id="itemFeatured" class="form-control">
+            <option value="false">No (Normal)</option>
+            <option value="true">Yes (Featured / Highlighted)</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label>Screenshot (1 Image)</label>
           <input type="file" id="itemImageFile" accept="image/*">
         </div>
@@ -474,9 +481,7 @@
       const { error } = await supabaseClient.from('orders').update({ status: newStatus }).eq('order_id', orderId);
       if(error) throw error;
 
-      // 🔒 Awtomatikong gawing 'Sold' ang item sa accounts/inventory table para sa LAHAT NG KATEGORYA
       if (newStatus === 'Completed' && itemId && itemId !== 'N/A') {
-        // Subukan muna i-update gamit ang eksaktong ID
         const { data: updatedData, error: accountError } = await supabaseClient
           .from('accounts')
           .update({ status: 'Sold' })
@@ -484,7 +489,6 @@
           .select();
 
         if (accountError || !updatedData || updatedData.length === 0) {
-          // Fallback sakaling may maliit na spacing o case-sensitivity sa ID
           await supabaseClient
             .from('accounts')
             .update({ status: 'Sold' })
@@ -622,6 +626,7 @@
         old_price: originalPriceToSave,
         account: document.getElementById('itemAccount').value.trim(),
         image_url: imageUrl,
+        featured: document.getElementById('itemFeatured').value === 'true',
         status: 'Available'
       };
 
@@ -637,7 +642,7 @@
         newItem.money = document.getElementById('brMoney').value.trim();
         newItem.steals = document.getElementById('brSteals').value.trim();
         newItem.rebirth = document.getElementById('brRebirth').value.trim();
-        newItem.adminPanel = document.getElementById('brAdminPanel').value;
+        newItem.adminpanel = document.getElementById('brAdminPanel').value;
       } else if (game === 'Steal An Egg') {
         newItem.money = document.getElementById('eggMoney').value.trim();
         newItem.moneyPerSecond = document.getElementById('eggMoneySec').value.trim();
@@ -681,6 +686,7 @@
     document.getElementById('itemId').value = item.id;
     document.getElementById('itemGame').value = item.game;
     document.getElementById('itemType').value = item.listing_type || 'Account';
+    document.getElementById('itemFeatured').value = item.featured ? 'true' : 'false';
     
     let currentP = parseFloat(item.price) || 0;
     let oldP = parseFloat(item.old_price) || 0;
@@ -708,7 +714,7 @@
     document.getElementById('brMoney').value = item.money || '';
     document.getElementById('brSteals').value = item.steals || '';
     document.getElementById('brRebirth').value = item.rebirth || '';
-    document.getElementById('brAdminPanel').value = item.adminPanel || 'false';
+    document.getElementById('brAdminPanel').value = item.adminpanel || 'false';
 
     document.getElementById('eggMoney').value = item.money || '';
     document.getElementById('eggMoneySec').value = item.moneyPerSecond || '';
