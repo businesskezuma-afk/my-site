@@ -184,7 +184,7 @@
   .pay-badge.gcash { color: #007dfc; border-color: rgba(0,125,252,0.3); background: rgba(0,125,252,0.05); }
   .pay-badge.maribank { color: #ff5f00; border-color: rgba(255,95,0,0.3); background: rgba(255,95,0,0.05); }
 
-  /* Professional Live Chat Support Widget */
+  /* Live Chat Support Widget */
   .chat-widget-btn {
     position: fixed; bottom: 20px; right: 20px;
     background: var(--green); color: #000;
@@ -219,14 +219,12 @@
   .chat-header-title { font-size: 12px; font-weight: 900; color: #fff; display: flex; align-items: center; gap: 6px; }
   .chat-close-btn { background: none; border: none; color: #aaa; font-size: 16px; cursor: pointer; font-weight: bold; }
   .chat-close-btn:hover { color: #fff; }
-  .chat-body { padding: 15px; font-size: 12px; color: #ccc; line-height: 1.5; background: #111; }
-  .chat-agent-msg { background: #1c1c1c; padding: 10px; border-radius: 10px; border: 1px solid #262626; margin-bottom: 12px; }
-  .chat-footer { padding: 12px; background: #141414; border-top: 1px solid var(--border); text-align: center; }
-  .chat-action-link {
-    display: block; width: 100%; padding: 10px; background: var(--green); color: #000;
-    text-decoration: none; border-radius: 8px; font-size: 11px; font-weight: 900; text-align: center; transition: 0.2s;
-  }
-  .chat-action-link:hover { background: var(--green-light); }
+  .chat-body { padding: 15px; height: 240px; overflow-y: auto; font-size: 12px; color: #ccc; line-height: 1.5; background: #111; display: flex; flex-direction: column; gap: 8px; }
+  .chat-agent-msg { background: #1c1c1c; padding: 10px; border-radius: 10px; border: 1px solid #262626; margin-bottom: 4px; }
+  .chat-footer { padding: 12px; background: #141414; border-top: 1px solid var(--border); display: flex; gap: 6px; }
+  .chat-input { flex: 1; padding: 9px; background: #101010; border: 1px solid var(--border-light); border-radius: 8px; color: #fff; font-size: 11px; outline: none; }
+  .chat-send-btn { padding: 0 14px; background: var(--green); color: #000; border: none; border-radius: 8px; font-size: 11px; font-weight: 900; cursor: pointer; }
+  .chat-send-btn:hover { background: var(--green-light); }
 
   .facebook-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
   .facebook-btn { display: inline-flex; align-items: center; justify-content: center; padding: 9px 12px; border-radius: 8px; background: #161616; border: 1px solid #252525; color: #aaa; text-decoration: none; font-size: 9px; font-weight: 800; }
@@ -388,20 +386,21 @@
   </div>
 </div>
 
-<!-- Interactive Live Chat Support Widget -->
-<button class="chat-widget-btn" onclick="toggleChatPopup()" title="Live Chat Support">💬</button>
+<!-- Live Chat Support Widget -->
+<button class="chat-widget-btn" onclick="toggleChatPopup()" title="Live Support">💬</button>
 <div id="chatPopupBox" class="chat-popup-box">
   <div class="chat-header">
-    <div class="chat-header-title">🟢 Live Support (Online)</div>
+    <div class="chat-header-title" id="chatHeaderTitle">💬 Live Support</div>
     <button class="chat-close-btn" onclick="toggleChatPopup()">✕</button>
   </div>
-  <div class="chat-body">
+  <div class="chat-body" id="chatBodyContainer">
     <div class="chat-agent-msg">
-      Hello! Do you have any questions about our available accounts or items? Message our support team directly! 👇
+      Hello! May katanungan ka ba sa aming mga accounts o items? Mag-iwan ng mensahe dito at sasagutin ka namin kaagad! 👇
     </div>
   </div>
   <div class="chat-footer">
-    <a href="https://www.facebook.com/mark.bnsacc1" target="_blank" rel="noopener noreferrer" class="chat-action-link">💬 CHAT VIA MESSENGER</a>
+    <input type="text" id="chatInputMsg" class="chat-input" placeholder="I-type ang mensahe..." onkeydown="if(event.key==='Enter') sendCustomerMessage()">
+    <button class="chat-send-btn" onclick="sendCustomerMessage()">Ipadala</button>
   </div>
 </div>
 
@@ -478,14 +477,75 @@
   let currentSearch = "";
   let currentSort = "default";
   let selectedCheckoutItem = null;
+  let currentConversationId = localStorage.getItem('chat_conv_id');
 
   function toggleChatPopup() {
     const box = document.getElementById('chatPopupBox');
-    if (box.style.display === 'flex') {
-      box.style.display = 'none';
-    } else {
-      box.style.display = 'flex';
+    box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
+    if(box.style.display === 'flex' && currentConversationId) {
+      loadCustomerMessages();
     }
+  }
+
+  async function sendCustomerMessage() {
+    const input = document.getElementById('chatInputMsg');
+    const msg = input.value.trim();
+    if(!msg) return;
+
+    if(!currentConversationId) {
+      currentConversationId = 'CONV-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      localStorage.setItem('chat_conv_id', currentConversationId);
+      
+      await supabaseClient.from('conversations').insert([{
+        id: currentConversationId,
+        customer_name: 'Customer ' + currentConversationId.split('-')[1],
+        status: 'Open',
+        last_message: msg,
+        updated_at: new Date()
+      }]);
+    }
+
+    await supabaseClient.from('messages').insert([{
+      conversation_id: currentConversationId,
+      sender: 'customer',
+      message: msg
+    }]);
+
+    await supabaseClient.from('conversations').update({
+      last_message: msg,
+      updated_at: new Date()
+    }).eq('id', currentConversationId);
+
+    input.value = '';
+    loadCustomerMessages();
+  }
+
+  async function loadCustomerMessages() {
+    if(!currentConversationId) return;
+    const { data } = await supabaseClient
+      .from('messages')
+      .select('*')
+      .eq('conversation_id', currentConversationId)
+      .order('created_at', { ascending: true });
+
+    const container = document.getElementById('chatBodyContainer');
+    if(data) {
+      container.innerHTML = data.map(m => `
+        <div style="align-self: ${m.sender === 'customer' ? 'flex-end' : 'flex-start'}; background: ${m.sender === 'customer' ? '#00d564; color:#000;' : '#1c1c1c; color:#fff;'}; padding: 8px 12px; border-radius: 8px; max-width: 80%; word-break: break-word;">
+          ${m.message}
+        </div>
+      `).join('');
+      container.scrollTop = container.scrollHeight;
+    }
+  }
+
+  if(currentConversationId) {
+    setInterval(() => {
+      const box = document.getElementById('chatPopupBox');
+      if(box.style.display === 'flex') {
+        loadCustomerMessages();
+      }
+    }, 4000);
   }
 
   async function loadSettings() {
@@ -508,20 +568,36 @@
     }
   }
 
-  function checkShopAvailability() {
-    const status = localStorage.getItem('shop_availability') || 'online';
-    const badge = document.getElementById('onlineBadgeContainer');
-    const dot = document.getElementById('onlineDot');
-    const text = document.getElementById('onlineText');
+  async function checkShopAvailability() {
+    try {
+      const { data } = await supabaseClient
+        .from('settings')
+        .select('value')
+        .eq('key', 'shop_status')
+        .single();
 
-    if(status === 'offline') {
-      badge.style.color = '#ff5f56';
-      dot.style.background = '#ff5f56';
-      text.textContent = 'OFFLINE (MESSAGE ONLY)';
-    } else {
-      badge.style.color = '#00e676';
-      dot.style.background = '#00e676';
-      text.textContent = 'ONLINE & READY';
+      const status = data ? data.value : (localStorage.getItem('shop_availability') || 'online');
+      const badge = document.getElementById('onlineBadgeContainer');
+      const dot = document.getElementById('onlineDot');
+      const text = document.getElementById('onlineText');
+
+      if(status === 'offline' || status === 'Offline & Ready' || status === 'Offline') {
+        badge.style.color = '#ff5f56';
+        badge.style.borderColor = 'rgba(255,95,92,0.25)';
+        badge.style.background = 'rgba(255,95,92,0.08)';
+        dot.style.background = '#ff5f56';
+        dot.style.boxShadow = '0 0 8px #ff5f56';
+        text.textContent = 'OFFLINE (MESSAGE ONLY)';
+      } else {
+        badge.style.color = '#00e676';
+        badge.style.borderColor = 'rgba(0,213,100,0.25)';
+        badge.style.background = 'rgba(0,213,100,0.08)';
+        dot.style.background = '#00e676';
+        dot.style.boxShadow = '0 0 8px #00e676';
+        text.textContent = 'ONLINE & READY';
+      }
+    } catch (err) {
+      console.error('Error loading shop status:', err);
     }
   }
 
@@ -963,6 +1039,7 @@
   setInterval(() => {
     loadAccounts();
     loadLatestVouches();
+    checkShopAvailability();
   }, 30000);
 </script>
 </body>
