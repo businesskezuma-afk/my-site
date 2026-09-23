@@ -119,6 +119,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+  // SECURITY CHECK: I-verify kung naka-login ang admin
+  if (localStorage.getItem('admin_logged_in') !== 'true') {
+    window.location.href = 'admin.html';
+  }
+
   const { createClient } = supabase;
   const supabaseUrl = 'https://ytrtivbepvpjbgdtuqrt.supabase.co';
   const supabaseKey = 'sb_publishable_qWOJctjWQouOqSzjek73pw_FYz7MbyS';
@@ -259,7 +264,6 @@
           .eq('id', orderData.item_id)
           .maybeSingle();
 
-        // Dynamic status text at kulay batay sa status ng order
         let orderStatusLabel = "Ready for verification";
         let statusDetailColor = "#00e676";
         if (orderData.status === 'Completed') {
