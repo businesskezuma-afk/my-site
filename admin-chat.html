@@ -12,7 +12,6 @@
   .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; background: #101010; border-bottom: 1px solid #202020; }
   .top-bar h2 { color: #00d564; font-size: 18px; font-weight: 900; display: flex; align-items: center; gap: 8px; }
   
-  /* Pinagandang Back Button */
   .back-btn { 
     display: inline-flex; 
     align-items: center; 
@@ -38,7 +37,6 @@
 
   .main-layout { display: flex; flex: 1; height: calc(100vh - 60px); overflow: hidden; }
   
-  /* Left Sidebar - Conversations List */
   .conv-sidebar { width: 340px; background: #111; border-right: 1px solid #202020; display: flex; flex-direction: column; }
   .sidebar-header { padding: 15px; font-size: 11px; font-weight: 900; color: #777; text-transform: uppercase; border-bottom: 1px solid #1c1c1c; background: #141414; }
   .conv-list { flex: 1; overflow-y: auto; }
@@ -48,7 +46,6 @@
   .conv-name { font-weight: bold; font-size: 13px; color: #fff; }
   .conv-preview { font-size: 11px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  /* Center Chat Pane */
   .chat-pane { flex: 1; display: flex; flex-direction: column; background: #0a0a0a; }
   .chat-header-info { padding: 15px 20px; background: #121212; border-bottom: 1px solid #202020; font-size: 13px; font-weight: 900; color: #fff; display: flex; align-items: center; justify-content: space-between; }
   
@@ -79,7 +76,6 @@
 </div>
 
 <div class="main-layout">
-  <!-- Conversations Sidebar on the Left -->
   <div class="conv-sidebar">
     <div class="sidebar-header">Active Conversations (<span id="convCount">0</span>)</div>
     <div class="conv-list" id="conversationsList">
@@ -87,7 +83,6 @@
     </div>
   </div>
 
-  <!-- Chat Window in the Center -->
   <div class="chat-pane">
     <div class="chat-header-info" id="chatHeaderTitle">
       Select a conversation on the left
@@ -115,9 +110,13 @@
   let activeCustName = '';
 
   async function loadConversations() {
-    const { data } = await supabaseClient.from('conversations').select('*').order('updated_at', { ascending: false });
-    const listEl = document.getElementById('conversationsList');
+    const { data, error } = await supabaseClient.from('conversations').select('*').order('updated_at', { ascending: false });
+    if(error) {
+      console.error("Error loading conversations:", error);
+      return;
+    }
     
+    const listEl = document.getElementById('conversationsList');
     if(!data || data.length === 0) {
       listEl.innerHTML = `<div style="padding: 20px; text-align: center; color: #666; font-size: 12px;">No active conversations.</div>`;
       document.getElementById('convCount').textContent = '0';
@@ -126,8 +125,8 @@
 
     document.getElementById('convCount').textContent = data.length;
     listEl.innerHTML = data.map(c => `
-      <div class="conv-item ${activeConvId === c.id ? 'active' : ''}" onclick="selectConversation('${c.id}', '${escapeHTML(c.customer_name)}')">
-        <div class="conv-name">${escapeHTML(c.customer_name)}</div>
+      <div class="conv-item ${activeConvId === c.id ? 'active' : ''}" onclick="selectConversation('${c.id}', '${escapeHTML(c.customer_name || 'Customer')}')">
+        <div class="conv-name">${escapeHTML(c.customer_name || 'Customer')}</div>
         <div class="conv-preview">${escapeHTML(c.last_message || 'No message')}</div>
       </div>
     `).join('');
@@ -144,9 +143,13 @@
 
   async function loadMessages() {
     if(!activeConvId) return;
-    const { data } = await supabaseClient.from('messages').select('*').eq('conversation_id', activeConvId).order('created_at', { ascending: true });
+    const { data, error } = await supabaseClient.from('messages').select('*').eq('conversation_id', activeConvId).order('created_at', { ascending: true });
+    if(error) {
+      console.error("Error loading messages:", error);
+      return;
+    }
+
     const area = document.getElementById('chatMessagesArea');
-    
     if(!data || data.length === 0) {
       area.innerHTML = `<div class="empty-chat">No messages in this conversation yet.</div>`;
       return;
@@ -166,11 +169,16 @@
     const msg = input.value.trim();
     if(!msg || !activeConvId) return;
 
-    await supabaseClient.from('messages').insert([{
+    const { error: msgError } = await supabaseClient.from('messages').insert([{
       conversation_id: activeConvId,
       sender: 'admin',
       message: msg
     }]);
+
+    if(msgError) {
+      alert("Error sending message: " + msgError.message);
+      return;
+    }
 
     await supabaseClient.from('conversations').update({
       last_message: 'Admin: ' + msg,
@@ -190,7 +198,7 @@
   setInterval(() => {
     loadConversations();
     if(activeConvId) loadMessages();
-  }, 4000);
+  }, 3000);
 </script>
 </body>
 </html>
