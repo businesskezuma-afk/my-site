@@ -98,6 +98,13 @@
   .trust-info h4 { font-size: 11px; font-weight: 900; color: #fff; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
   .trust-info p { font-size: 10px; color: var(--muted); line-height: 1.4; }
 
+  /* Live Ticker Bar */
+  .live-ticker {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 10px 16px; margin-bottom: 25px; display: flex; align-items: center; gap: 12px; font-size: 11px; color: var(--muted);
+  }
+  .ticker-badge { background: rgba(0,213,100,0.15); color: var(--green-light); padding: 3px 8px; border-radius: 999px; font-weight: 900; font-size: 9px; text-transform: uppercase; }
+
   .search-section { max-width: 880px; margin: 0 auto 32px; position: relative; }
   .search-row { display: flex; gap: 10px; }
   .search-box { position: relative; flex: 1; }
@@ -186,6 +193,14 @@
   .page-btn.active { background: var(--green); color: #000; border-color: var(--green); font-weight: 900; box-shadow: 0 4px 12px rgba(0,213,100,0.2); }
   .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+  /* FAQ & Guide Section */
+  .faq-section { margin-top: 50px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 25px; }
+  .faq-title { font-size: 16px; font-weight: 900; color: #fff; margin-bottom: 15px; border-left: 3px solid var(--green); padding-left: 12px; }
+  .faq-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+  .faq-item { background: var(--surface-soft); border: 1px solid var(--border); border-radius: 10px; padding: 15px; }
+  .faq-q { font-size: 12px; font-weight: bold; color: var(--green-light); margin-bottom: 6px; }
+  .faq-a { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
   .vouches-section { margin-top: 50px; margin-bottom: 30px; }
   .vouches-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
   .vouches-title { font-size: 16px; font-weight: 900; color: #fff; border-left: 3px solid var(--green); padding-left: 12px; letter-spacing: 0.3px; }
@@ -217,8 +232,10 @@
   .checkout-form-group label { display: block; margin-bottom: 6px; font-size: 10px; color: #bbb; font-weight: bold; text-transform: uppercase; letter-spacing: 0.3px; }
   .checkout-input { width: 100%; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border-light); border-radius: 10px; color: #fff; font-size: 13px; outline: none; transition: 0.2s; }
   .checkout-input:focus { border-color: #00d564; background: #060a08; box-shadow: 0 0 12px rgba(0,213,100,0.15); }
-  .success-order-box { text-align: center; padding: 20px 0; }
-  .order-id-highlight { font-size: 18px; color: var(--green-light); font-weight: 900; background: var(--surface); padding: 12px; border-radius: 10px; margin: 15px 0; border: 1px dashed var(--green); word-break: break-all; }
+  .success-order-box { text-align: center; padding: 15px 0; }
+  .order-id-highlight { font-size: 18px; color: var(--green-light); font-weight: 900; background: var(--surface); padding: 12px; border-radius: 10px; margin: 12px 0; border: 1px dashed var(--green); word-break: break-all; }
+  .order-instruction-box { background: rgba(0,213,100,0.08); border: 1px solid rgba(0,213,100,0.25); border-radius: 10px; padding: 12px; margin-bottom: 15px; font-size: 11px; color: #ccc; line-height: 1.5; text-align: left; }
+  .order-instruction-box b { color: var(--green-light); }
 
   .important-box { margin-top: 40px; padding: 22px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 18px; }
   .important-content { flex: 1; }
@@ -289,6 +306,7 @@
   @media(max-width: 900px) {
     .controls-row { flex-direction: column; align-items: stretch; }
     .trust-badges-grid { grid-template-columns: 1fr; }
+    .faq-grid { grid-template-columns: 1fr; }
     .account-grid { grid-template-columns: repeat(2,1fr); }
     .vouches-grid { grid-template-columns: repeat(2,1fr); }
     .hero-banner-card { height: 220px; }
@@ -371,6 +389,12 @@
     </div>
   </div>
 
+  <!-- Live Activity Ticker -->
+  <div class="live-ticker">
+    <span class="ticker-badge">Live Feed</span>
+    <span id="tickerText">🔥 Juan D. successfully purchased Roblox Blox Fruits account via GCash!</span>
+  </div>
+
   <div class="search-section">
     <div class="search-row">
       <div class="search-box">
@@ -423,6 +447,29 @@
     </div>
   </div>
 
+  <!-- FAQ & Trading Guide Section -->
+  <div class="faq-section">
+    <div class="faq-title">❓ Frequently Asked Questions (FAQ)</div>
+    <div class="faq-grid">
+      <div class="faq-item">
+        <div class="faq-q">How does the purchasing process work?</div>
+        <div class="faq-a">You can order directly through our on-site checkout or message us on our official Facebook page using the Item ID.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">How fast are account details delivered?</div>
+        <div class="faq-a">Instantly after your payment (GCash / MariBank) is confirmed, full account details will be provided to you.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Are the accounts and items safe?</div>
+        <div class="faq-a">Yes! 100% Legit with verified customer vouches proving our reliable service.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">What payment methods are available?</div>
+        <div class="faq-a">We accept GCash and MariBank for fast and easy transactions.</div>
+      </div>
+    </div>
+  </div>
+
   <div class="vouches-section">
     <div class="vouches-top-row">
       <div class="vouches-title">💬 CUSTOMER VOUCHES & REVIEWS</div>
@@ -445,7 +492,7 @@
       </div>
       <div class="facebook-buttons">
         <a href="https://www.facebook.com/mark.bnsacc1" target="_blank" rel="noopener noreferrer" class="facebook-btn">📱 MAIN FACEBOOK</a>
-        <a href="https://www.facebook.com/mark.bnsacc" target="_blank" rel="noopener noreferrer" class="facebook-btn">📱 SECOND FACEBOOK</a>
+        <a href="https://www.facebook.com/profile.php?id=61594901001557" target="_blank" rel="noopener noreferrer" class="facebook-btn">📱 SECOND FACEBOOK</a>
       </div>
     </div>
     <div class="visitor-counter">
@@ -512,14 +559,20 @@
     <div id="modeFb" style="display: none;">
       <div class="step-list" style="color: #bbb; font-size: 12px; line-height: 1.6; padding: 10px 0;">
         <div class="step-item" style="margin-bottom: 8px;"><b>Step 1:</b> Copy the <b>Item ID</b> above.</div>
-        <div class="step-item"><b>Step 2:</b> Message me on Facebook (<a href="https://www.facebook.com/mark.bnsacc1" target="_blank" style="color: #00d564; text-decoration: underline;">Main FB</a> or <a href="https://www.facebook.com/mark.bnsacc" target="_blank" style="color: #00d564; text-decoration: underline;">Second FB</a>) and send the ID of the item you want to buy.</div>
+        <div class="step-item"><b>Step 2:</b> Message me on Facebook (<a href="https://www.facebook.com/mark.bnsacc1" target="_blank" style="color: #00d564; text-decoration: underline;">Main FB</a> or <a href="https://www.facebook.com/profile.php?id=61594901001557" target="_blank" style="color: #00d564; text-decoration: underline;">Second FB</a>) and send the ID of the item you want to buy.</div>
       </div>
     </div>
 
     <div id="orderSuccessView" style="display: none;" class="success-order-box">
-      <div style="font-size: 28px; margin-bottom: 10px;">🎉</div>
-      <div style="font-size: 16px; font-weight: 900; color: #fff; margin-bottom: 5px;">Order Placed Successfully!</div>
+      <div style="font-size: 26px; margin-bottom: 6px;">🎉</div>
+      <div style="font-size: 15px; font-weight: 900; color: #fff; margin-bottom: 4px;">Order Placed Successfully!</div>
       <div class="order-id-highlight" id="successOrderCode">ORD-XXXXXX</div>
+      
+      <!-- Instruction Added Here -->
+      <div class="order-instruction-box">
+        <b>PLEASE NOTE:</b> Copy or screenshot your <b>Order Code</b> above. Send it to our <a href="https://www.facebook.com/mark.bnsacc1" target="_blank" style="color:#00e676; text-decoration:underline;">Main Facebook</a> or <a href="https://www.facebook.com/profile.php?id=61594901001557" target="_blank" style="color:#00e676; text-decoration:underline;">Second Facebook</a> along with your payment proof so your transaction can be processed immediately!
+      </div>
+
       <button class="buy-btn" onclick="closeCheckoutModal()">DONE / CLOSE</button>
     </div>
   </div>
@@ -551,6 +604,19 @@
   let currentSort = "default";
   let selectedCheckoutItem = null;
   let currentConversationId = localStorage.getItem('chat_conv_id');
+
+  const tickerMessages = [
+    "🔥 Mark S. successfully purchased Roblox Steal an Egg account via GCash!",
+    "⚡ Kyla R. bought Minecraft Full Access account via MariBank!",
+    "🚀 John D. grabbed a Blox Fruits account securely!",
+    "💎 Sarah M. completed a Digital Goods transaction instantly!"
+  ];
+  let tickerIndex = 0;
+  setInterval(() => {
+    tickerIndex = (tickerIndex + 1) % tickerMessages.length;
+    const tickerEl = document.getElementById('tickerText');
+    if(tickerEl) tickerEl.textContent = tickerMessages[tickerIndex];
+  }, 5000);
 
   function toggleChatPopup() {
     const box = document.getElementById('chatPopupBox');
