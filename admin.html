@@ -11,9 +11,9 @@
   .container { max-width: 1200px; margin: 0 auto; }
   .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #202020; padding-bottom: 15px; flex-wrap: wrap; gap: 15px; }
   .header h1 { color: #00d564; font-size: 22px; font-weight: 900; }
-  .header-actions { display: flex; gap: 10px; }
+  .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
   
-  .btn { padding: 9px 14px; background: #161616; border: 1px solid #333; color: #fff; font-size: 11px; font-weight: bold; border-radius: 8px; cursor: pointer; text-decoration: none; transition: 0.2s; position: relative; z-index: 5; }
+  .btn { padding: 9px 14px; background: #161616; border: 1px solid #333; color: #fff; font-size: 11px; font-weight: bold; border-radius: 8px; cursor: pointer; text-decoration: none; transition: 0.2s; position: relative; z-index: 5; display: inline-flex; align-items: center; gap: 5px; }
   .btn:hover { background: #222; border-color: #555; }
   .btn.primary { background: #00d564; color: #000; border-color: #00d564; font-weight: 900; }
   .btn.primary:hover { background: #00e676; }
@@ -74,6 +74,7 @@
   <div class="header">
     <h1>ADMIN PANEL</h1>
     <div class="header-actions">
+      <a href="admin-chat.html" class="btn primary">💬 Live Chat Dashboard</a>
       <a href="index.html" class="btn">View Marketplace</a>
       <button class="btn danger" onclick="logout()">Logout</button>
     </div>
@@ -449,7 +450,7 @@
       const actionButtons = (dbStatus !== 'completed' && dbStatus !== 'cancelled') 
         ? `<button class="btn primary" style="padding: 4px 8px; font-size: 10px; position: relative; z-index: 10;" onclick="updateOrderStatus('${escapeHTML(o.order_id)}', 'Completed', '${escapeHTML(o.item_id || '')}')">Complete</button>
            <button class="btn danger" style="padding: 4px 8px; font-size: 10px; position: relative; z-index: 10; margin-left: 5px;" onclick="updateOrderStatus('${escapeHTML(o.order_id)}', 'Cancelled', '${escapeHTML(o.item_id || '')}')">Cancel</button>` 
-        : `<span style="font-size: 10px; color: #555;">No Actions Available</span>`;
+        : `<span style="font-size: 10px; color: #555;">No Actions</span>`;
 
       return `
         <tr>
