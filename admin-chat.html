@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Live Chat Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+  body { background: #090909; color: #f5f5f5; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+  .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; background: #101010; border-bottom: 1px solid #202020; }
+  .main-layout { display: flex; flex: 1; height: calc(100vh - 60px); overflow: hidden; }
+  
+  .conv-sidebar { width: 320px; background: #121212; border-right: 1px solid #202020; overflow-y: auto; }
+  .conv-item { padding: 15px; border-bottom: 1px solid #1c1c1c; cursor: pointer; transition: 0.2s; }
+  .conv-item:hover, .conv-item.active { background: #1a1a1a; }
+  
+  .chat-pane { flex: 1; display: flex; flex-direction: column; background: #0d0d0d; }
+  .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+  .chat-input-area { padding: 15px; background: #121212; border-top: 1px solid #202020; display: flex; gap: 10px; }
+  
+  .info-sidebar { width: 280px; background: #121212; border-left: 1px solid #202020; padding: 20px; }
+  
+  .btn { padding: 8px 12px; background: #00d564; color: #000; border: none; font-weight: 900; border-radius: 6px; cursor: pointer; font-size: 11px; }
+  .form-control { width: 100%; padding: 10px; background: #161616; border: 1px solid #292929; border-radius: 6px; color: #fff; font-size: 12px; outline: none; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h2>Live Chat Management Dashboard</h2>
+  <a href="admin.html" style="color: #00d564; text-decoration: none; font-size: 12px; font-weight: bold;">← Bumalik sa Admin Panel</a>
+</div>
+
+<div class="main-layout">
+  <!-- Listahan ng Conversations -->
+  <div class="conv-sidebar" id="conversationsList">
+    <div style="padding: 15px; color: #666; font-size: 12px;">Loading conversations...</div>
+  </div>
+
+  <!-- Chat Window sa Gitna -->
+  <div class="chat-pane">
+    <div id="chatMessagesArea" class="chat-messages">
+      <div style="text-align: center; color: #666; margin-top: 50px;">Pumili ng usapan sa kaliwa para magsimulang mag-reply.</div>
+    </div>
+    <div class="chat-input-area" id="chatInputArea" style="display: none;">
+      <input type="text" id="adminReplyInput" class="form-control" placeholder="I-type ang iyong sagot bilang Admin..." onkeydown="if(event.key==='Enter') sendAdminMessage()">
+      <button class="btn" onclick="sendAdminMessage()">Ipadala</button>
+    </div>
+  </div>
+
+  <!-- Customer Info sa Kanan -->
+  <div class="info-sidebar" id="customerInfoPane">
+    <h3 style="font-size: 12px; color: #777; text-transform: uppercase; margin-bottom: 10px;">Detalye ng Kustomer</h3>
+    <p style="font-size: 12px; color: #aaa;">Walang napiling kustomer.</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const { createClient } = supabase;
+  const supabaseUrl = 'https://ytrtivbepvpjbgdtuqrt.supabase.co';
+  const supabaseKey = 'sb_publishable_qWOJctjWQouOqSzjek73pw_FYz7MbyS';
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+  let activeConvId = null;
+
+  async function loadConversations() {
+    const { data } = await supabaseClient.from('conversations').select('*').order('updated_at', { ascending: false });
+    const listEl = document.getElementById('conversationsList');
+    
+    if(!data || data.length === 0) {
+      listEl.innerHTML = `<div style="padding: 15px; color: #666; font-size: 12px;">Walang aktibong usapan.</div>`;
+      return;
+    }
+
+    listEl.innerHTML = data.map(c => `
+      <div class="conv-item ${activeConvId === c.id ? 'active' : ''}" onclick="selectConversation('${c.id}', '${c.customer_name}')">
+        <div style="font-weight: bold; font-size: 12px; color: #fff; margin-bottom: 4px;">${c.customer_name}</div>
+        <div style="font-size: 11px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.last_message || 'Walang mensahe'}</div>
+      </div>
+    `).join('');
+  }
+
+  async function selectConversation(convId, custName) {
+    activeConvId = convId;
+    document.getElementById('chatInputArea').style.display = 'flex';
+    document.getElementById('customerInfoPane').innerHTML = `
+      <h3 style="font-size: 12px; color: #777; text-transform: uppercase; margin-bottom: 10px;">Detalye ng Kustomer</h3>
+      <div style="font-size: 13px; font-weight: bold; color: #fff; margin-bottom: 5px;">${custName}</div>
+      <div style="font-size: 11px; color: #aaa;">Conversation ID:<br><b style="color:#00d564;">${convId}</b></div>
+    `;
+    loadMessages();
+    loadConversations();
+  }
+
+  async function loadMessages() {
+    if(!activeConvId) return;
+    const { data } = await supabaseClient.from('messages').select('*').eq('conversation_id', activeConvId).order('created_at', { ascending: true });
+    const area = document.getElementById('chatMessagesArea');
+    
+    if(data) {
+      area.innerHTML = data.map(m => `
+        <div style="align-self: ${m.sender === 'admin' ? 'flex-end' : 'flex-start'}; background: ${m.sender === 'admin' ? '#00d564; color:#000;' : '#1c1c1c; color:#fff;'}; padding: 10px 14px; border-radius: 8px; max-width: 75%; word-break: break-word; font-size: 12px;">
+          <b style="font-size:9px; display:block; opacity:0.7; margin-bottom:2px;">${m.sender.toUpperCase()}</b>
+          ${m.message}
+        </div>
+      `).join('');
+      area.scrollTop = area.scrollHeight;
+    }
+  }
+
+  async function sendAdminMessage() {
+    const input = document.getElementById('adminReplyInput');
+    const msg = input.value.trim();
+    if(!msg || !activeConvId) return;
+
+    await supabaseClient.from('messages').insert([{
+      conversation_id: activeConvId,
+      sender: 'admin',
+      message: msg
+    }]);
+
+    await supabaseClient.from('conversations').update({
+      last_message: 'Admin: ' + msg,
+      updated_at: new Date()
+    }).eq('id', activeConvId);
+
+    input.value = '';
+    loadMessages();
+    loadConversations();
+  }
+
+  loadConversations();
+  setInterval(() => {
+    loadConversations();
+    if(activeConvId) loadMessages();
+  }, 4000);
+</script>
+</body>
+</html>
