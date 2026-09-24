@@ -35,9 +35,21 @@
     color: var(--text); min-height: 100vh; transition: background 0.3s ease, color 0.3s ease;
   }
 
-  /* Theme Toggle Button Style */
-  .theme-toggle-btn {
+  /* Top Right Controls Wrapper */
+  .top-controls-wrapper {
     position: fixed; top: 20px; right: 20px; z-index: 4000;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .currency-select {
+    background: var(--surface); border: 1px solid var(--border-light);
+    color: var(--text); padding: 8px 12px; border-radius: 999px;
+    font-size: 11px; font-weight: bold; cursor: pointer; outline: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.2s;
+  }
+  .currency-select:hover { border-color: var(--green); }
+
+  .theme-toggle-btn {
     background: var(--surface); border: 1px solid var(--border-light);
     color: var(--text); padding: 8px 14px; border-radius: 999px;
     font-size: 11px; font-weight: bold; cursor: pointer;
@@ -354,10 +366,16 @@
 </head>
 <body>
 
-<!-- Theme Toggle Button -->
-<button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
-  🌙 Dark Mode
-</button>
+<!-- Top Right Controls: Currency Selector & Theme Toggle Button -->
+<div class="top-controls-wrapper">
+  <select id="currencySelect" class="currency-select" onchange="changeCurrency(this.value)" title="Select Currency">
+    <option value="PHP">₱ PHP</option>
+    <option value="USD">$ USD</option>
+  </select>
+  <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+    🌙 Dark Mode
+  </button>
+</div>
 
 <div id="announcementModal" class="announcement-overlay">
   <div class="announcement-box">
@@ -628,6 +646,8 @@
   let currentTypeFilter = "all";
   let currentSearch = "";
   let currentSort = "default";
+  let currentCurrency = "PHP"; // Default Currency
+  let liveUsdToPhpRate = 62.84; // Live market fallback
   let selectedCheckoutItem = null;
   let currentConversationId = localStorage.getItem('chat_conv_id');
   let chatRealtimeChannel = null;
@@ -635,7 +655,7 @@
   let trackedOrderCode = localStorage.getItem('tracked_order_code');
   let inactivityTimer = null;
 
-  // Dark & Light Mode Functions
+  // Dark & Light Mode Functions (with System Theme Preference fallback)
   function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
@@ -651,14 +671,63 @@
     }
   }
 
-  // Init Theme
+  // Init Theme based on saved storage or System Preference
   (function() {
-    const savedTheme = localStorage.getItem('kezrblx_theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    const savedTheme = localStorage.getItem('kezrblx_theme');
+    let initialTheme = savedTheme;
+    if (!initialTheme) {
+      const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+      initialTheme = prefersLight ? 'light' : 'dark';
+    }
+    document.documentElement.setAttribute('data-theme', initialTheme);
     window.addEventListener('DOMContentLoaded', () => {
-      updateThemeButton(savedTheme);
+      updateThemeButton(initialTheme);
     });
   })();
+
+  // Fetch Live USD Rate
+  async function fetchLiveExchangeRate() {
+    try {
+      const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+      const data = await response.json();
+      if (data && data.rates && data.rates.PHP) {
+        liveUsdToPhpRate = data.rates.PHP;
+      }
+    } catch (err) {
+      console.error("Failed to fetch live exchange rate, using default:", err);
+    }
+  }
+
+  function changeCurrency(currency) {
+    currentCurrency = currency;
+    localStorage.setItem('kezrblx_currency', currency);
+    renderAccounts();
+  }
+
+  (function() {
+    const savedCurrency = localStorage.getItem('kezrblx_currency') || 'PHP';
+    currentCurrency = savedCurrency;
+    window.addEventListener('DOMContentLoaded', () => {
+      const selectEl = document.getElementById('currencySelect');
+      if(selectEl) selectEl.value = savedCurrency;
+    });
+    fetchLiveExchangeRate();
+  })();
+
+  function formatPrice(price){
+    let value = String(price || "").replace(/₱/g,"").replace(/,/g,"");
+    const phpNumber = parseFloat(value.replace(/[^0-9.-]/g, ""));
+    if (isNaN(phpNumber)) return "₱0";
+
+    if (currentCurrency === "USD") {
+      // Kinukuha muna ang USD value sa pamamagitan ng live rate, tapos idinaragdag ang $0.30
+      const baseUsd = phpNumber / liveUsdToPhpRate;
+      const usdValue = baseUsd + 0.30;
+      return "$" + usdValue.toFixed(2);
+    } else {
+      return "₱" + phpNumber.toLocaleString("en-PH");
+    }
+  }
 
   const tickerMessages = [
     "🔥 Mark S. successfully purchased Roblox Steal an Egg account via GCash!",
@@ -1105,12 +1174,6 @@
 
   function normalizeGame(game){ return String(game || "").trim().toLowerCase().replace(/\s+/g, " "); }
   function normalizeSearchText(value){ return String(value ?? "").toLowerCase().trim().replace(/₱/g,"").replace(/,/g,"").replace(/php/gi,"").replace(/\s+/g," "); }
-
-  function formatPrice(price){
-    let value = String(price || "").replace(/₱/g,"").replace(/,/g,"");
-    const number = parseFloat(value.replace(/[^0-9.-]/g, ""));
-    return isNaN(number) ? "₱0" : "₱" + number.toLocaleString("en-PH");
-  }
 
   function getPriceNumber(price){
     const parsed = parseFloat(String(price || "").replace(/[^0-9.-]/g, ""));
