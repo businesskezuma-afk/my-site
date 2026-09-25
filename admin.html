@@ -574,22 +574,6 @@
               .ilike('id', itemId);
           }
         }
-
-        const { data: orderDetails } = await supabaseClient
-          .from('orders')
-          .select('*')
-          .eq('order_id', orderId)
-          .maybeSingle();
-
-        if (orderDetails) {
-          await supabaseClient.from('vouches').insert([{
-            customer_name: orderDetails.customer_name || 'Verified Buyer',
-            game: orderDetails.game || 'Digital Goods',
-            rating: 5,
-            feedback: `Auto-verified: Smooth transaction for order ${orderId}! Highly recommended.`,
-            status: 'Approved'
-          }]);
-        }
       }
 
       loadOrdersAdmin();
