@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>All Customer Reviews - Kezrblx Marketplace</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff0033' font-family='Arial, sans-serif' font-weight='900' font-size='75'>K</text></svg>">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', Arial, sans-serif; }
+  :root {
+    --bg: #050706; --surface: #0a0f0d; --surface-soft: #111814;
+    --border: #17221c; --border-light: #22332a; --text: #eef4f0;
+    --muted: #7c8f85; --green: #00d564; --green-light: #00e676;
+    --green-soft: rgba(0,213,100,.12); --star: #ffbd2e; --orange: #e89a24;
+  }
+  body {
+    background: radial-gradient(circle at top center, rgba(0,213,100,.06), transparent 40%), var(--bg);
+    color: var(--text); min-height: 100vh; padding: 35px 20px;
+  }
+  .container { max-width: 1140px; margin: 0 auto; }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 6px; color: var(--green-light);
+    font-size: 11px; font-weight: 800; text-decoration: none; margin-bottom: 25px; transition: 0.2s;
+  }
+  .back-link:hover { opacity: 0.8; transform: translateX(-3px); }
+  
+  .header { text-align: center; margin-bottom: 40px; }
+  .header h1 { color: #fff; font-size: 26px; font-weight: 900; margin-bottom: 8px; text-transform: uppercase; letter-spacing: -0.5px; }
+  .header h1 span { color: var(--green-light); text-shadow: 0 0 20px rgba(0,213,100,0.3); }
+  .header p { color: var(--muted); font-size: 12px; font-weight: 500; }
+
+  .reviews-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+
+  .vouch-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 20px; display: flex; flex-direction: column; justify-content: space-between;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: 0.2s;
+  }
+  .vouch-card:hover { border-color: var(--border-light); transform: translateY(-2px); box-shadow: 0 12px 35px rgba(0,0,0,0.7); }
+  
+  .item-snapshot { background: var(--bg); border: 1px solid var(--border-light); border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+  .item-snapshot img { width: 100%; height: 150px; object-fit: cover; border-radius: 9px; margin-bottom: 12px; background: var(--surface-soft); border: 1px solid var(--border); }
+  
+  .snapshot-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .game-pill { font-size: 9px; color: var(--muted); font-weight: 900; text-transform: uppercase; background: var(--surface-soft); padding: 5px 10px; border-radius: 999px; border: 1px solid var(--border-light); }
+  .sold-pill { font-size: 8px; color: var(--orange); font-weight: 900; background: rgba(232,154,36,0.1); padding: 5px 10px; border-radius: 999px; border: 1px solid rgba(232,154,36,0.25); text-transform: uppercase; }
+
+  .snapshot-id-label { font-size: 8px; color: var(--muted); text-transform: uppercase; margin-top: 4px; font-weight: 800; letter-spacing: 0.5px; }
+  .snapshot-id { font-size: 15px; font-weight: 900; color: #fff; margin-bottom: 10px; }
+
+  .snapshot-detail-row { display: flex; justify-content: space-between; font-size: 11px; padding: 5px 0; border-bottom: 1px solid var(--border); }
+  .snapshot-detail-label { color: var(--muted); }
+  .snapshot-detail-value { color: #ddd; font-weight: 700; }
+
+  .price-row-box { display: flex; justify-content: space-between; align-items: center; background: var(--surface-soft); border: 1px solid var(--border-light); padding: 10px 12px; border-radius: 9px; margin-top: 12px; }
+  .price-label-text { font-size: 9px; color: var(--muted); font-weight: 800; text-transform: uppercase; }
+  .price-value-text { font-size: 15px; color: var(--green-light); font-weight: 900; text-shadow: 0 0 10px rgba(0,213,100,0.2); }
+
+  .completed-pill { text-align: center; background: var(--green-soft); border: 1px solid rgba(0,213,100,0.2); color: var(--green-light); font-size: 9px; font-weight: 900; padding: 7px; border-radius: 9px; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .customer-feedback-section { background: var(--surface-soft); border: 1px solid var(--border-light); border-radius: 12px; padding: 14px; margin-top: auto; }
+  .feedback-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .customer-name { font-size: 12px; font-weight: 900; color: #fff; }
+  .stars { color: var(--star); font-size: 12px; text-shadow: 0 0 8px rgba(255,189,46,0.3); }
+  .feedback-text { font-size: 11px; color: #ccc; line-height: 1.5; word-break: break-word; font-style: italic; }
+  .feedback-date { font-size: 9px; color: var(--muted); text-align: right; margin-top: 8px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <a href="index.html" class="back-link">← Back to Marketplace</a>
+  <div class="header">
+    <h1>All Customer <span>Reviews</span></h1>
+    <p>All approved vouches from our customers along with the purchased item details.</p>
+  </div>
+
+  <div id="reviewsGrid" class="reviews-grid">
+    <div style="color: var(--muted); font-size: 12px; grid-column: 1/-1; text-align: center; padding: 40px;">Loading reviews...</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const { createClient } = supabase;
+  const supabaseUrl = 'https://ytrtivbepvpjbgdtuqrt.supabase.co';
+  const supabaseKey = 'sb_publishable_qWOJctjWQouOqSzjek73pw_FYz7MbyS';
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+  function escapeHTML(value){
+    return String(value ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+  }
+
+  function formatPrice(price){
+    let value = String(price || "").replace(/₱/g,"").replace(/,/g,"");
+    const number = parseFloat(value.replace(/[^0-9.-]/g, ""));
+    return isNaN(number) ? "₱0" : "₱" + number.toLocaleString("en-PH");
+  }
+
+  async function loadAllReviews() {
+    const grid = document.getElementById('reviewsGrid');
+    try {
+      const { data, error } = await supabaseClient
+        .from('vouches')
+        .select('*')
+        .eq('status', 'Approved')
+        .order('date_added', { ascending: false });
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        grid.innerHTML = `<div style="color: var(--muted); font-size: 12px; grid-column: 1/-1; text-align: center; padding: 40px;">No published reviews or vouches yet.</div>`;
+        return;
+      }
+
+      grid.innerHTML = data.map(v => {
+        let detailsHtml = '';
+
+        if (v.money) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Money</span><span class="snapshot-detail-value">${escapeHTML(v.money)}</span></div>`;
+        if (v.money_per_second) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Money/s</span><span class="snapshot-detail-value">${escapeHTML(v.money_per_second)}</span></div>`;
+        if (v.speed) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Speed</span><span class="snapshot-detail-value">${escapeHTML(v.speed)}</span></div>`;
+        if (v.steals) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Steals</span><span class="snapshot-detail-value">${escapeHTML(v.steals)}</span></div>`;
+        if (v.rebirth) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Rebirth</span><span class="snapshot-detail-value">${escapeHTML(v.rebirth)}</span></div>`;
+        if (v.admin_panel) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Admin Panel</span><span class="snapshot-detail-value">${escapeHTML(v.admin_panel)}</span></div>`;
+        if (v.level) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Level</span><span class="snapshot-detail-value">${escapeHTML(v.level)}</span></div>`;
+        if (v.bounty) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Bounty</span><span class="snapshot-detail-value">${escapeHTML(v.bounty)}</span></div>`;
+        if (v.fruit) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Fruit</span><span class="snapshot-detail-value">${escapeHTML(v.fruit)}</span></div>`;
+        if (v.fighting_style) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Fighting Style</span><span class="snapshot-detail-value">${escapeHTML(v.fighting_style)}</span></div>`;
+        if (v.race) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Race</span><span class="snapshot-detail-value">${escapeHTML(v.race)}</span></div>`;
+        if (v.mc_access) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Access</span><span class="snapshot-detail-value">${escapeHTML(v.mc_access)}</span></div>`;
+        if (v.mc_platform) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Platform</span><span class="snapshot-detail-value">${escapeHTML(v.mc_platform)}</span></div>`;
+        if (v.mc_rank) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Rank</span><span class="snapshot-detail-value">${escapeHTML(v.mc_rank)}</span></div>`;
+        if (v.mc_capes) detailsHtml += `<div class="snapshot-detail-row"><span class="snapshot-detail-label">Capes</span><span class="snapshot-detail-value">${escapeHTML(v.mc_capes)}</span></div>`;
+
+        const imageTag = v.image_url ? `<img src="${escapeHTML(v.image_url)}" alt="Item Screenshot">` : '';
+        const priceText = formatPrice(v.price);
+        const itemIdText = v.item_id ? escapeHTML(v.item_id) : (v.order_code ? escapeHTML(v.order_code) : 'N/A');
+
+        return `
+          <div class="vouch-card">
+            <div>
+              <div class="item-snapshot">
+                ${imageTag}
+                <div class="snapshot-top">
+                  <span class="game-pill">${escapeHTML(v.game || 'General')}</span>
+                  <span class="sold-pill">SOLD OUT</span>
+                </div>
+                <div class="snapshot-id-label">Item / Account ID</div>
+                <div class="snapshot-id">${itemIdText}</div>
+                ${detailsHtml}
+                <div class="price-row-box">
+                  <span class="price-label-text">Sold Price</span>
+                  <span class="price-value-text">${priceText}</span>
+                </div>
+                <div class="completed-pill">🔒 Transaction Completed</div>
+              </div>
+            </div>
+
+            <div class="customer-feedback-section">
+              <div class="feedback-header">
+                <span class="customer-name">${escapeHTML(v.customer_name)}</span>
+                <span class="stars">${'★'.repeat(Number(v.rating) || 5)}</span>
+              </div>
+              <div class="feedback-text">"${escapeHTML(v.feedback)}"</div>
+              <div class="feedback-date">${escapeHTML(v.date_added || '')}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } catch (err) {
+      console.error(err);
+      grid.innerHTML = `<div style="color: var(--danger, #ff5f56); font-size: 12px; grid-column: 1/-1; text-align: center; padding: 40px;">Error loading reviews.</div>`;
+    }
+  }
+
+  loadAllReviews();
+</script>
+</body>
+</html>
