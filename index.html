@@ -785,6 +785,18 @@
       updateAuthNavButton();
       const selectEl = document.getElementById('currencySelect');
       if(selectEl) selectEl.value = currentCurrency;
+      
+      // Auto-fill form inputs kung naka-login ang user
+      if (currentUser) {
+        const buyerNameInput = document.getElementById('orderBuyerName');
+        const contactInput = document.getElementById('orderContact');
+        if (buyerNameInput && !buyerNameInput.value) {
+          buyerNameInput.value = currentUser.full_name || currentUser.email.split('@')[0];
+        }
+        if (contactInput && !contactInput.value) {
+          contactInput.value = currentUser.email;
+        }
+      }
     });
     fetchLiveExchangeRate();
   })();
@@ -933,6 +945,13 @@
       localStorage.setItem('custom_current_user', JSON.stringify(currentUser));
       closeAuthModal();
       updateAuthNavButton();
+      
+      // Auto-fill checkout fields if modal is open
+      const buyerNameInput = document.getElementById('orderBuyerName');
+      const contactInput = document.getElementById('orderContact');
+      if (buyerNameInput) buyerNameInput.value = currentUser.full_name || currentUser.email.split('@')[0];
+      if (contactInput) contactInput.value = currentUser.email;
+
       alert("Login successful!");
     }
   }
@@ -1014,17 +1033,23 @@
     const container = document.getElementById('userOrdersList');
     container.innerHTML = `<div style="color: var(--muted); font-size: 11px; text-align: center; padding: 20px;"><span class="spinner"></span> Loading orders...</div>`;
     
-    const emailKey = currentUser.email.trim();
-    const nameKey = (currentUser.full_name || currentUser.email.split('@')[0]).trim();
+    if (!currentUser) {
+      container.innerHTML = `<div style="color: var(--muted); font-size: 11px; text-align: center; padding: 20px;">Please log in to view your purchase history.</div>`;
+      return;
+    }
 
+    const emailKey = currentUser.email.trim();
+    const userId = currentUser.id;
+
+    // Kunin ang mga orders base sa user_id o kaya ay contact info email match
     const { data, error } = await supabaseClient
       .from('orders')
       .select('*')
-      .or(`contact_info.ilike.%${emailKey}%,customer_name.ilike.%${nameKey}%`)
+      .or(`user_id.eq.${userId},contact_info.ilike.%${emailKey}%`)
       .order('date_added', { ascending: false });
 
     if (error || !data || data.length === 0) {
-      container.innerHTML = `<div style="color: var(--muted); font-size: 11px; text-align: center; padding: 20px;">No personal orders found yet. When you checkout using your name or email/contact info, your orders will appear here!</div>`;
+      container.innerHTML = `<div style="color: var(--muted); font-size: 11px; text-align: center; padding: 20px;">No personal orders found yet. When you checkout while logged in, your orders will appear here!</div>`;
       return;
     }
 
@@ -1451,6 +1476,14 @@
     document.getElementById("checkoutItemPrice").textContent = price;
     document.getElementById("onSiteOrderForm").reset();
 
+    // Auto-fill values kung naka-login
+    if (currentUser) {
+      const buyerNameInput = document.getElementById("orderBuyerName");
+      const contactInput = document.getElementById("orderContact");
+      if (buyerNameInput) buyerNameInput.value = currentUser.full_name || currentUser.email.split('@')[0];
+      if (contactInput) contactInput.value = currentUser.email;
+    }
+
     document.getElementById("modeOnSite").style.display = "block";
     document.getElementById("modeFb").style.display = "none";
     document.getElementById("orderSuccessView").style.display = "none";
@@ -1508,7 +1541,8 @@
       price: selectedCheckoutItem.price,
       payment_method: paymentMethod,
       status: 'Processing',
-      date_added: new Date().toISOString().split('T')[0]
+      date_added: new Date().toISOString().split('T')[0],
+      user_id: currentUser ? currentUser.id : null // 👈 Naka-link na ngayon sa currently logged-in user
     };
 
     await supabaseClient.from('orders').insert([orderData]);
