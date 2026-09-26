@@ -933,6 +933,7 @@
       localStorage.setItem('custom_current_user', JSON.stringify(currentUser));
       closeAuthModal();
       updateAuthNavButton();
+      
       alert("Login successful!");
     }
   }
@@ -1014,17 +1015,22 @@
     const container = document.getElementById('userOrdersList');
     container.innerHTML = `<div style="color: var(--muted); font-size: 11px; text-align: center; padding: 20px;"><span class="spinner"></span> Loading orders...</div>`;
     
+    if (!currentUser) {
+      container.innerHTML = `<div style="color: var(--muted); font-size: 11px; text-align: center; padding: 20px;">Please log in to view your purchase history.</div>`;
+      return;
+    }
+
     const emailKey = currentUser.email.trim();
-    const nameKey = (currentUser.full_name || currentUser.email.split('@')[0]).trim();
+    const userId = currentUser.id;
 
     const { data, error } = await supabaseClient
       .from('orders')
       .select('*')
-      .or(`contact_info.ilike.%${emailKey}%,customer_name.ilike.%${nameKey}%`)
+      .or(`user_id.eq.${userId},contact_info.ilike.%${emailKey}%`)
       .order('date_added', { ascending: false });
 
     if (error || !data || data.length === 0) {
-      container.innerHTML = `<div style="color: var(--muted); font-size: 11px; text-align: center; padding: 20px;">No personal orders found yet. When you checkout using your name or email/contact info, your orders will appear here!</div>`;
+      container.innerHTML = `<div style="color: var(--muted); font-size: 11px; text-align: center; padding: 20px;">No personal orders found yet. When you checkout while logged in, your orders will appear here!</div>`;
       return;
     }
 
@@ -1134,48 +1140,34 @@
     if(!textToSend) return;
 
     try {
+      const buyerNameInput = document.getElementById("orderBuyerName")?.value.trim();
+      const defaultCustName = buyerNameInput || (currentUser ? (currentUser.full_name || currentUser.email.split('@')[0]) : 'Customer');
+
       if(!currentConversationId) {
         currentConversationId = 'CONV-' + Math.random().toString(36).substring(2, 8).toUpperCase();
         
-        const { error: convError } = await supabaseClient.from('conversations').insert([{
+        const { error: convError } = await supabaseClient.from('conversations').upsert([{
           id: currentConversationId,
-          customer_name: document.getElementById("orderBuyerName")?.value.trim() || ('Customer ' + currentConversationId.split('-')[1]),
+          customer_name: defaultCustName,
           status: 'Open',
           last_message: textToSend,
           updated_at: new Date()
         }]);
         
         if (convError) {
-          currentConversationId = null;
-          return;
+          console.error("Error creating conversation:", convError);
         }
         
         localStorage.setItem('chat_conv_id', currentConversationId);
         setupCustomerRealtimeChat();
       } else {
-        const { data: existingConv } = await supabaseClient
-          .from('conversations')
-          .select('id')
-          .eq('id', currentConversationId)
-          .maybeSingle();
-
-        if (!existingConv) {
-          currentConversationId = 'CONV-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-          const { error: convError } = await supabaseClient.from('conversations').insert([{
-            id: currentConversationId,
-            customer_name: document.getElementById("orderBuyerName")?.value.trim() || ('Customer ' + currentConversationId.split('-')[1]),
-            status: 'Open',
-            last_message: textToSend,
-            updated_at: new Date()
-          }]);
-
-          if (convError) {
-            currentConversationId = null;
-            return;
-          }
-          localStorage.setItem('chat_conv_id', currentConversationId);
-          setupCustomerRealtimeChat();
-        }
+        await supabaseClient.from('conversations').upsert([{
+          id: currentConversationId,
+          customer_name: defaultCustName,
+          status: 'Open',
+          last_message: textToSend.startsWith("ORD-") ? `Checked Order: ${textToSend}` : textToSend,
+          updated_at: new Date()
+        }]);
       }
 
       let finalMessageContent = textToSend;
@@ -1186,74 +1178,90 @@
         localStorage.setItem('tracked_order_code', trackedOrderCode);
         setupOrderRealtimeListener(trackedOrderCode);
 
-        const { data: orderData } = await supabaseClient
+        const { data: orderData, error: orderErr } = await supabaseClient
           .from('orders')
           .select('*')
           .eq('order_id', cleanText)
           .maybeSingle();
 
         if (orderData) {
-          const { data: accData } = await supabaseClient
-            .from('accounts')
-            .select('*')
-            .eq('id', orderData.item_id)
-            .maybeSingle();
-
           let accountDetailsHtml = "";
-          if (accData) {
+          let statusColor = "#ffbd2e";
+          let statusText = orderData.status;
+
+          if (orderData.status === 'Completed') {
+            statusColor = "#00e676";
+            const { data: accData } = await supabaseClient
+              .from('accounts')
+              .select('*')
+              .eq('id', orderData.item_id)
+              .maybeSingle();
+
+            if (accData) {
+              accountDetailsHtml = `
+                <div class="chat-account-details-box">
+                  <b>📦 ACCOUNT DETAILS:</b><br>
+                  • Username/Info: <b>${escapeHTML(accData.account || accData.dgPlatform || 'N/A')}</b><br>
+                  • Status: Successfully Delivered!
+                </div>
+              `;
+            }
+          } else if (orderData.status === 'Cancelled') {
+            statusColor = "#ff5f56";
+            statusText = '❌ CANCELLED';
             accountDetailsHtml = `
-              <div class="chat-account-details-box">
-                <b>📦 ITEM / ACCOUNT DETAILS:</b><br>
-                • Username/Info: <b>${escapeHTML(accData.account || accData.dgPlatform || 'N/A')}</b><br>
-                • Status: Ready for verification<br>
+              <div class="chat-account-details-box" style="border-color: #ff5f56; color: #ff5f56;">
+                <b>❌ ORDER CANCELLED</b><br>
+                • This order has been cancelled and is no longer valid.
               </div>
             `;
           } else {
-            accountDetailsHtml = `
-              <div class="chat-account-details-box">
-                • Item ID: <b>${escapeHTML(orderData.item_id)}</b>
-              </div>
-            `;
+            const { data: accData } = await supabaseClient
+              .from('accounts')
+              .select('*')
+              .eq('id', orderData.item_id)
+              .maybeSingle();
+
+            if (accData) {
+              accountDetailsHtml = `
+                <div class="chat-account-details-box">
+                  <b>📦 ITEM / ACCOUNT DETAILS:</b><br>
+                  • Username/Info: <b>${escapeHTML(accData.account || accData.dgPlatform || 'N/A')}</b><br>
+                  • Status: Ready for verification<br>
+                </div>
+              `;
+            }
           }
 
-          let statusColor = "#ffbd2e";
-          if(orderData.status === 'Completed') statusColor = "#00e676";
-          if(orderData.status === 'Cancelled') statusColor = "#ff5f56";
-
           finalMessageContent = `
-            <div class="chat-order-card">
+            <div class="chat-order-card" style="border-color: ${statusColor};">
               <div class="chat-order-header">
-                <span class="chat-order-title">🛒 ORDER VERIFIED</span>
+                <span class="chat-order-title" style="color:${statusColor};">🛒 ORDER VERIFIED</span>
                 <span class="chat-order-code">${escapeHTML(orderData.order_id)}</span>
               </div>
               <div class="chat-order-row"><span class="chat-order-label">Buyer Name:</span> <span class="chat-order-val">${escapeHTML(orderData.customer_name)}</span></div>
               <div class="chat-order-row"><span class="chat-order-label">Game/Item:</span> <span class="chat-order-val">${escapeHTML(orderData.game)}</span></div>
               <div class="chat-order-row"><span class="chat-order-label">Price:</span> <span class="chat-order-val" style="color:var(--green-light);">${escapeHTML(orderData.price)}</span></div>
               <div class="chat-order-row"><span class="chat-order-label">Payment:</span> <span class="chat-order-val">${escapeHTML(orderData.payment_method)}</span></div>
-              <div class="chat-order-row"><span class="chat-order-label">Status:</span> <span class="chat-order-val" style="color:${statusColor};">${escapeHTML(orderData.status)}</span></div>
+              <div class="chat-order-row"><span class="chat-order-label">Status:</span> <span class="chat-order-val" style="color:${statusColor};">${escapeHTML(statusText)}</span></div>
               ${accountDetailsHtml}
             </div>
           `;
+        } else {
+          finalMessageContent = `❌ Walang nakitang order na may code na <b>${cleanText}</b>. Pakisuri muli ang iyong Order Code.`;
         }
       }
 
-      const { error: msgError } = await supabaseClient.from('messages').insert([{
+      await supabaseClient.from('messages').insert([{
         conversation_id: currentConversationId,
         sender: isSystemAuto ? 'system' : 'customer',
         message: finalMessageContent
       }]);
 
-      if (msgError) return;
-
-      await supabaseClient.from('conversations').update({
-        last_message: textToSend.startsWith("ORD-") ? `Checked Order: ${textToSend}` : textToSend,
-        updated_at: new Date()
-      }).eq('id', currentConversationId);
-
       loadCustomerMessages();
       resetInactivityTimer();
     } catch (err) {
-      console.error("Unexpected error:", err);
+      console.error("Unexpected error in chat:", err);
     }
   }
 
@@ -1273,11 +1281,13 @@
       }, async (payload) => {
         const updatedOrder = payload.new;
         if (updatedOrder && (updatedOrder.status === 'Completed' || updatedOrder.status === 'Cancelled')) {
-          let statusText = updatedOrder.status === 'Completed' ? '✅ COMPLETED 🎉' : '❌ CANCELLED';
-          let statusColor = updatedOrder.status === 'Completed' ? '#00e676' : '#ff5f56';
+          
+          const orderStatus = updatedOrder.status;
+          let statusText = orderStatus === 'Completed' ? '✅ COMPLETED 🎉' : '❌ CANCELLED';
+          let statusColor = orderStatus === 'Completed' ? '#00e676' : '#ff5f56';
           
           let accountDetailsHtml = "";
-          if (updatedOrder.status === 'Completed') {
+          if (orderStatus === 'Completed') {
             const { data: accData } = await supabaseClient
               .from('accounts')
               .select('*')
@@ -1293,12 +1303,19 @@
                 </div>
               `;
             }
+          } else if (orderStatus === 'Cancelled') {
+            accountDetailsHtml = `
+              <div class="chat-account-details-box" style="border-color: #ff5f56; color: #ff5f56;">
+                <b>❌ ORDER CANCELLED</b><br>
+                • This order has been cancelled and is no longer valid.
+              </div>
+            `;
           }
           
           const notificationMsg = `
             <div class="chat-order-card" style="border-color: ${statusColor};">
               <div class="chat-order-header">
-                <span class="chat-order-title" style="color:${statusColor};">ORDER ${updatedOrder.status.toUpperCase()}</span>
+                <span class="chat-order-title" style="color:${statusColor};">ORDER ${orderStatus.toUpperCase()}</span>
                 <span class="chat-order-code">${escapeHTML(updatedOrder.order_id)}</span>
               </div>
               <div class="chat-order-row"><span class="chat-order-label">Game/Item:</span> <span class="chat-order-val">${escapeHTML(updatedOrder.game)}</span></div>
@@ -1508,10 +1525,17 @@
       price: selectedCheckoutItem.price,
       payment_method: paymentMethod,
       status: 'Processing',
-      date_added: new Date().toISOString().split('T')[0]
+      date_added: new Date().toISOString().split('T')[0],
+      user_id: currentUser ? String(currentUser.id) : null
     };
 
-    await supabaseClient.from('orders').insert([orderData]);
+    const { data, error } = await supabaseClient.from('orders').insert([orderData]);
+
+    if (error) {
+      console.error("Order Insertion Error Details:", error);
+      alert("❌ Hindi naisave ang order sa Database!\nError: " + error.message);
+      return;
+    }
 
     document.getElementById("modeOnSite").style.display = "none";
     document.getElementById("successOrderCode").textContent = uniqueOrderCode;
