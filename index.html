@@ -57,6 +57,31 @@
   }
   .theme-toggle-btn:hover { background: var(--green); color: #000; border-color: var(--green); }
 
+  /* TOAST NOTIFICATION CONTAINER */
+  #toastContainer {
+    position: fixed; bottom: 24px; left: 24px; z-index: 99999;
+    display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+  }
+  .toast-banner {
+    background: var(--surface-soft); border: 1px solid var(--green); color: var(--text);
+    padding: 12px 18px; border-radius: 12px; font-size: 11px; font-weight: bold;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 15px rgba(0,213,100,0.25);
+    display: flex; align-items: center; gap: 10px; pointer-events: auto;
+    animation: slideInToast 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    backdrop-filter: blur(10px); max-width: 340px;
+  }
+  .toast-banner.fade-out {
+    animation: slideOutToast 0.3s ease forwards;
+  }
+  @keyframes slideInToast {
+    0% { transform: translateY(50px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes slideOutToast {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(50px); opacity: 0; }
+  }
+
   .announcement-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center;
@@ -185,6 +210,15 @@
   .account-new-badge { background: #e89a24; color: #000; }
   .type-badge { background: var(--surface-soft); color: var(--green-light); border: 1px solid var(--border); }
   
+  .wishlist-btn {
+    position: absolute; top: 18px; right: 18px; width: 32px; height: 32px;
+    background: var(--surface-soft); border: 1px solid var(--border-light); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px;
+    transition: 0.2s; z-index: 5; color: var(--muted);
+  }
+  .wishlist-btn:hover { border-color: var(--green); color: #ff5f56; transform: scale(1.1); }
+  .wishlist-btn.active { color: #ff5f56; background: rgba(255,95,92,0.1); border-color: #ff5f56; }
+
   .account-id-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
   .account-id-label { color: var(--muted); font-size: 8px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
   .account-id { display: block; color: var(--text); font-size: 16px; font-weight: 900; margin-bottom: 12px; word-break: break-all; }
@@ -273,10 +307,10 @@
   .dashboard-user-info h3 { font-size: 15px; font-weight: 900; color: var(--text); margin-bottom: 4px; }
   .dashboard-user-info p { font-size: 11px; color: var(--muted); word-break: break-all; }
   
-  .dashboard-tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+  .dashboard-tabs { display: flex; gap: 6px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px; flex-wrap: wrap; }
   .dash-tab-btn {
-    padding: 8px 14px; background: var(--surface); border: 1px solid var(--border);
-    color: var(--muted); font-size: 11px; font-weight: 800; border-radius: 8px; cursor: pointer; transition: 0.2s;
+    padding: 8px 12px; background: var(--surface); border: 1px solid var(--border);
+    color: var(--muted); font-size: 10px; font-weight: 800; border-radius: 8px; cursor: pointer; transition: 0.2s;
   }
   .dash-tab-btn.active { background: var(--green); color: #000; border-color: var(--green); font-weight: 900; }
 
@@ -394,6 +428,9 @@
     🌙 Dark Mode
   </button>
 </div>
+
+<!-- TOAST NOTIFICATION CONTAINER -->
+<div id="toastContainer"></div>
 
 <div id="announcementModal" class="announcement-overlay">
   <div class="announcement-box">
@@ -607,7 +644,7 @@
 
 <!-- DASHBOARD MODAL -->
 <div id="dashboardModal" class="modal-overlay">
-  <div class="modal-box" style="max-width: 680px;">
+  <div class="modal-box" style="max-width: 720px;">
     <button class="modal-close" onclick="closeDashboardModal()">×</button>
     
     <div class="dashboard-header-card">
@@ -619,10 +656,12 @@
     </div>
 
     <div class="dashboard-tabs">
-      <button class="dash-tab-btn active" id="tabBtnOrders" onclick="switchDashTab('orders')">📦 Purchase History</button>
-      <button class="dash-tab-btn" id="tabBtnProfile" onclick="switchDashTab('profile')">⚙️ Profile Settings</button>
+      <button class="dash-tab-btn active" id="tabBtnOrders" onclick="switchDashTab('orders')">📦 Orders</button>
+      <button class="dash-tab-btn" id="tabBtnWishlist" onclick="switchDashTab('wishlist')">❤️ Wishlist (<span id="wishlistCountDash">0</span>)</button>
+      <button class="dash-tab-btn" id="tabBtnProfile" onclick="switchDashTab('profile')">⚙️ Settings</button>
     </div>
 
+    <!-- ORDERS TAB -->
     <div id="dashTabOrders">
       <div style="font-size: 11px; font-weight: 900; color: var(--green-light); margin-bottom: 8px; text-transform: uppercase;">Recent Orders & Status</div>
       <div id="userOrdersList" style="max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
@@ -630,6 +669,15 @@
       </div>
     </div>
 
+    <!-- WISHLIST TAB -->
+    <div id="dashTabWishlist" style="display: none;">
+      <div style="font-size: 11px; font-weight: 900; color: var(--green-light); margin-bottom: 8px; text-transform: uppercase;">My Saved Wishlist Items & Full Details</div>
+      <div id="userWishlistList" style="max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+        <!-- Saved items full details will be injected here -->
+      </div>
+    </div>
+
+    <!-- PROFILE SETTINGS TAB -->
     <div id="dashTabProfile" style="display: none;">
       <form onsubmit="handleUpdateProfile(event)">
         <div class="checkout-form-group">
@@ -668,54 +716,66 @@
 
 <!-- CHECKOUT MODAL -->
 <div id="checkoutModal" class="modal-overlay">
-  <div class="modal-box" style="max-width: 500px;">
+  <div class="modal-box" style="max-width: 820px; width: 95%;">
     <button class="modal-close" onclick="closeCheckoutModal()">×</button>
-    <div class="modal-title">Complete Your Order</div>
-    <div class="modal-subtitle">Item ID: <b id="checkoutItemId" style="color:var(--text);">---</b> | Price: <b id="checkoutItemPrice" style="color:var(--green-light);">---</b></div>
     
-    <div class="checkout-tabs">
-      <button class="checkout-tab-btn active" id="tabOnSite" onclick="switchCheckoutMode('onsite')">🛒 On-Site Checkout</button>
-      <button class="checkout-tab-btn" id="tabFb" onclick="switchCheckoutMode('fb')">💬 Order via Facebook</button>
-    </div>
-
-    <div id="modeOnSite">
-      <form id="onSiteOrderForm" onsubmit="submitOnSiteOrder(event)">
-        <div class="checkout-form-group">
-          <label>Your Name / Facebook Name</label>
-          <input type="text" id="orderBuyerName" class="checkout-input" placeholder="e.g. Juan Dela Cruz" autocomplete="off" required>
+    <div style="display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; align-items: start;" id="checkoutModalGrid">
+      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+        <div style="font-size: 11px; font-weight: 900; color: var(--green-light); margin-bottom: 10px; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+          <span>📦</span> Item Overview
         </div>
-        <div class="checkout-form-group">
-          <label>Contact Info (Messenger Link or Email/Phone No.)</label>
-          <input type="text" id="orderContact" class="checkout-input" placeholder="e.g. facebook.com/juandelacruz or email@gmail.com" autocomplete="off" required>
-        </div>
-        <div class="checkout-form-group">
-          <label>Payment Method</label>
-          <select id="orderPaymentMethod" class="checkout-input" required>
-            <option value="GCash">GCash</option>
-            <option value="MariBank">MariBank</option>
-          </select>
-        </div>
-        <button type="submit" class="buy-btn" id="placeOrderBtn" style="margin-top: 15px;">SUBMIT ORDER</button>
-      </form>
-    </div>
-
-    <div id="modeFb" style="display: none;">
-      <div class="step-list" style="color: var(--muted); font-size: 12px; line-height: 1.6; padding: 10px 0;">
-        <div class="step-item" style="margin-bottom: 8px;"><b>Step 1:</b> Copy the <b>Item ID</b> above.</div>
-        <div class="step-item"><b>Step 2:</b> Message me on Facebook (<a href="https://www.facebook.com/mark.bnsacc1" target="_blank" style="color: var(--green-light); text-decoration: underline;">Main FB</a> or <a href="https://www.facebook.com/profile.php?id=61594901001557" target="_blank" style="color: var(--green-light); text-decoration: underline;">Second FB</a>) and send the ID of the item you want to buy.</div>
-      </div>
-    </div>
-
-    <div id="orderSuccessView" style="display: none;" class="success-order-box">
-      <div style="font-size: 26px; margin-bottom: 6px;">🎉</div>
-      <div style="font-size: 15px; font-weight: 900; color: var(--text); margin-bottom: 4px;">Order Placed Successfully!</div>
-      <div class="order-id-highlight" id="successOrderCode">ORD-XXXXXX</div>
-      
-      <div class="order-instruction-box">
-        <b>PLEASE NOTE:</b> Copy your <b>Order Code</b> and send it to our <b>Live Support Chat</b> to automatically view your order status and account details!
+        <div id="checkoutItemPreviewContent"></div>
       </div>
 
-      <button class="buy-btn" onclick="closeCheckoutModal()">DONE / CLOSE</button>
+      <div>
+        <div class="modal-title">Complete Your Order</div>
+        <div class="modal-subtitle">Item ID: <b id="checkoutItemId" style="color:var(--text);">---</b> | Price: <b id="checkoutItemPrice" style="color:var(--green-light);">---</b></div>
+        
+        <div class="checkout-tabs">
+          <button class="checkout-tab-btn active" id="tabOnSite" onclick="switchCheckoutMode('onsite')">🛒 On-Site Checkout</button>
+          <button class="checkout-tab-btn" id="tabFb" onclick="switchCheckoutMode('fb')">💬 Order via Facebook</button>
+        </div>
+
+        <div id="modeOnSite">
+          <form id="onSiteOrderForm" onsubmit="submitOnSiteOrder(event)">
+            <div class="checkout-form-group">
+              <label>Your Name / Facebook Name</label>
+              <input type="text" id="orderBuyerName" class="checkout-input" placeholder="e.g. Juan Dela Cruz" autocomplete="off" required>
+            </div>
+            <div class="checkout-form-group">
+              <label>Contact Info (Messenger Link or Email/Phone No.)</label>
+              <input type="text" id="orderContact" class="checkout-input" placeholder="e.g. facebook.com/juandelacruz or email@gmail.com" autocomplete="off" required>
+            </div>
+            <div class="checkout-form-group">
+              <label>Payment Method</label>
+              <select id="orderPaymentMethod" class="checkout-input" required>
+                <option value="GCash">GCash</option>
+                <option value="MariBank">MariBank</option>
+              </select>
+            </div>
+            <button type="submit" class="buy-btn" id="placeOrderBtn" style="margin-top: 15px;">SUBMIT ORDER</button>
+          </form>
+        </div>
+
+        <div id="modeFb" style="display: none;">
+          <div class="step-list" style="color: var(--muted); font-size: 12px; line-height: 1.6; padding: 10px 0;">
+            <div class="step-item" style="margin-bottom: 8px;"><b>Step 1:</b> Copy the <b>Item ID</b> above.</div>
+            <div class="step-item"><b>Step 2:</b> Message me on Facebook (<a href="https://www.facebook.com/mark.bnsacc1" target="_blank" style="color: var(--green-light); text-decoration: underline;">Main FB</a> or <a href="https://www.facebook.com/profile.php?id=61594901001557" target="_blank" style="color: var(--green-light); text-decoration: underline;">Second FB</a>) and send the ID of the item you want to buy.</div>
+          </div>
+        </div>
+
+        <div id="orderSuccessView" style="display: none;" class="success-order-box">
+          <div style="font-size: 26px; margin-bottom: 6px;">🎉</div>
+          <div style="font-size: 15px; font-weight: 900; color: var(--text); margin-bottom: 4px;">Order Placed Successfully!</div>
+          <div class="order-id-highlight" id="successOrderCode">ORD-XXXXXX</div>
+          
+          <div class="order-instruction-box">
+            <b>PLEASE NOTE:</b> Copy your <b>Order Code</b> and send it to our <b>Live Support Chat</b> to automatically view your order status and account details!
+          </div>
+
+          <button class="buy-btn" onclick="closeCheckoutModal()">DONE / CLOSE</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -756,6 +816,24 @@
   let currentUser = JSON.parse(localStorage.getItem('custom_current_user') || 'null');
   let isRegisterMode = false;
   let isForgotMode = false;
+  
+  let wishlist = JSON.parse(localStorage.getItem('kezrblx_wishlist') || '[]');
+
+  function showToast(message, icon = '🔔') {
+    const container = document.getElementById('toastContainer');
+    if(!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = 'toast-banner';
+    toast.innerHTML = `<span style="font-size:16px;">${icon}</span> <span>${escapeHTML(message)}</span>`;
+    
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add('fade-out');
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  }
 
   function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -788,6 +866,25 @@
     });
     fetchLiveExchangeRate();
   })();
+
+  function toggleWishlist(itemId) {
+    const index = wishlist.indexOf(itemId);
+    const acc = accounts.find(a => String(a.id) === String(itemId));
+    
+    if(index > -1) {
+      wishlist.splice(index, 1);
+      showToast(`Item ID ${itemId} removed from your Wishlist.`, '🗑️');
+    } else {
+      wishlist.push(itemId);
+      showToast(`Item ID ${itemId} (${acc ? acc.game : 'Item'}) added to your Wishlist!`, '❤️');
+    }
+    localStorage.setItem('kezrblx_wishlist', JSON.stringify(wishlist));
+    renderAccounts();
+    if(currentUser) {
+      const countEl = document.getElementById('wishlistCountDash');
+      if(countEl) countEl.textContent = wishlist.length;
+    }
+  }
 
   function updateAuthNavButton() {
     const btn = document.getElementById('authNavBtn');
@@ -934,7 +1031,7 @@
       closeAuthModal();
       updateAuthNavButton();
       
-      alert("Login successful!");
+      showToast(`Welcome back, ${currentUser.full_name || currentUser.email}!`, '👋');
     }
   }
 
@@ -948,6 +1045,9 @@
     document.getElementById('dashUserAvatar').textContent = (currentUser.full_name || currentUser.email).charAt(0).toUpperCase();
     document.getElementById('updateProfileName').value = currentUser.full_name || '';
     
+    const countEl = document.getElementById('wishlistCountDash');
+    if(countEl) countEl.textContent = wishlist.length;
+
     switchDashTab('orders');
     document.getElementById('dashboardModal').style.display = 'flex';
   }
@@ -956,22 +1056,85 @@
 
   function switchDashTab(tab) {
     const tabOrders = document.getElementById('dashTabOrders');
+    const tabWishlist = document.getElementById('dashTabWishlist');
     const tabProfile = document.getElementById('dashTabProfile');
+    
     const btnOrders = document.getElementById('tabBtnOrders');
+    const btnWishlist = document.getElementById('tabBtnWishlist');
     const btnProfile = document.getElementById('tabBtnProfile');
+
+    tabOrders.style.display = 'none';
+    tabWishlist.style.display = 'none';
+    tabProfile.style.display = 'none';
+    
+    btnOrders.classList.remove('active');
+    btnWishlist.classList.remove('active');
+    btnProfile.classList.remove('active');
 
     if (tab === 'orders') {
       tabOrders.style.display = 'block';
-      tabProfile.style.display = 'none';
       btnOrders.classList.add('active');
-      btnProfile.classList.remove('active');
       loadUserOrders();
+    } else if (tab === 'wishlist') {
+      tabWishlist.style.display = 'block';
+      btnWishlist.classList.add('active');
+      loadUserWishlistDetails();
     } else {
-      tabOrders.style.display = 'none';
       tabProfile.style.display = 'block';
       btnProfile.classList.add('active');
-      btnOrders.classList.remove('active');
     }
+  }
+
+  function loadUserWishlistDetails() {
+    const container = document.getElementById('userWishlistList');
+    const countEl = document.getElementById('wishlistCountDash');
+    if(countEl) countEl.textContent = wishlist.length;
+
+    if(wishlist.length === 0) {
+      container.innerHTML = `<div style="text-align: center; color: var(--muted); padding: 25px; font-size: 11px;">You have no saved wishlist items yet. Click the heart (❤️) icon on any account card to add them here!</div>`;
+      return;
+    }
+
+    const savedAccounts = accounts.filter(a => wishlist.includes(a.id));
+    if(savedAccounts.length === 0) {
+      container.innerHTML = `<div style="text-align: center; color: var(--muted); padding: 25px; font-size: 11px;">Your saved wishlist items might have been sold or are no longer available.</div>`;
+      return;
+    }
+
+    container.innerHTML = savedAccounts.map(acc => {
+      const game = normalizeGame(acc.game);
+      let detailsText = "";
+      if(game === "steal an egg"){
+        detailsText = `Username: ${acc.account || 'N/A'} | Money: ${acc.money || 'N/A'} | Speed: ${acc.speed || 'N/A'}`;
+      } else if(game === "steal a brainrot"){
+        detailsText = `Username: ${acc.account || 'N/A'} | Money: ${acc.money || 'N/A'} | Rebirth: ${acc.rebirth || 'N/A'}`;
+      } else if(game === "blox fruits"){
+        detailsText = `Username: ${acc.account || 'N/A'} | Level: ${acc.level || 'N/A'} | Fruit: ${acc.fruit || 'N/A'}`;
+      } else if(game === "minecraft"){
+        detailsText = `Username: ${acc.account || 'N/A'} | Access: ${acc.mcAccess || 'N/A'} | Rank: ${acc.mcRank || 'N/A'}`;
+      } else {
+        detailsText = `Platform: ${acc.dgPlatform || 'N/A'} | Info: ${acc.account || 'N/A'}`;
+      }
+
+      const imgThumb = acc.image_url ? `<img src="${escapeHTML(acc.image_url)}" style="width: 45px; height: 45px; border-radius: 8px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--border);">` : '';
+
+      return `
+        <div class="chat-order-card" style="display: flex; justify-content: space-between; align-items: center; margin: 0; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px; overflow: hidden;">
+            ${imgThumb}
+            <div>
+              <div class="chat-order-title">${escapeHTML(acc.game)} (ID: ${escapeHTML(acc.id)})</div>
+              <div style="font-size: 10px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">${escapeHTML(detailsText)}</div>
+              <div style="font-size: 11px; color: var(--green-light); font-weight: bold; margin-top: 2px;">${escapeHTML(formatPrice(acc.price))}</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px; flex-shrink: 0;">
+            <button class="buy-btn" style="padding: 6px 12px; font-size: 10px;" onclick="closeDashboardModal(); openCheckoutModal('${escapeHTML(acc.id)}')">Buy</button>
+            <button class="buy-btn" style="padding: 6px 10px; font-size: 10px; background: #ff5f56; color: #fff;" onclick="toggleWishlist('${escapeHTML(acc.id)}'); loadUserWishlistDetails();">Remove</button>
+          </div>
+        </div>
+      `;
+    }).join('');
   }
 
   async function handleUpdateProfile(event) {
@@ -1000,7 +1163,7 @@
 
     document.getElementById('dashUserName').textContent = newName;
     document.getElementById('dashUserAvatar').textContent = newName.charAt(0).toUpperCase();
-    alert("Profile updated successfully!");
+    showToast("Profile updated successfully!", "✅");
   }
 
   async function handleLogout() {
@@ -1008,7 +1171,7 @@
     localStorage.removeItem('custom_current_user');
     closeDashboardModal();
     updateAuthNavButton();
-    alert("Logged out successfully.");
+    showToast("Logged out successfully.", "👋");
   }
 
   async function loadUserOrders() {
@@ -1248,7 +1411,7 @@
             </div>
           `;
         } else {
-          finalMessageContent = `❌ Walang nakitang order na may code na <b>${cleanText}</b>. Pakisuri muli ang iyong Order Code.`;
+          finalMessageContent = `❌ No order found with the code <b>${cleanText}</b>. Please check your Order Code again.`;
         }
       }
 
@@ -1462,12 +1625,65 @@
     if(updateTimeEl) updateTimeEl.textContent = timeString;
   }
 
-  function openCheckoutModal(itemId, price, game) {
-    selectedCheckoutItem = { id: itemId, price: price, game: game };
-    document.getElementById("checkoutItemId").textContent = itemId;
-    document.getElementById("checkoutItemPrice").textContent = price;
-    document.getElementById("onSiteOrderForm").reset();
+  function openCheckoutModal(itemId) {
+    const account = accounts.find(a => String(a.id) === String(itemId));
+    if(!account) return;
 
+    selectedCheckoutItem = { id: account.id, price: formatPrice(account.price), game: account.game };
+    document.getElementById("checkoutItemId").textContent = account.id;
+    document.getElementById("checkoutItemPrice").textContent = formatPrice(account.price);
+    
+    const previewContainer = document.getElementById("checkoutItemPreviewContent");
+    const game = normalizeGame(account.game);
+    let detailsHtml = "";
+
+    if(game === "steal an egg"){
+      detailsHtml += detailRow("Username", account.account);
+      detailsHtml += detailRow("Money", account.money);
+      detailsHtml += detailRow("Money/s", account.moneyPerSecond);
+      detailsHtml += detailRow("Speed", account.speed);
+    } else if(game === "steal a brainrot"){
+      detailsHtml += detailRow("Username", account.account);
+      detailsHtml += detailRow("Money", account.money);
+      detailsHtml += detailRow("Steals", account.steals);
+      detailsHtml += detailRow("Rebirth", account.rebirth);
+      if(String(account.adminpanel).trim().toLowerCase() === "true") detailsHtml += detailRow("🛠️ Admin Panel", "TRUE");
+    } else if(game === "blox fruits"){
+      detailsHtml += detailRow("Username", account.account);
+      detailsHtml += detailRow("Level", account.level);
+      detailsHtml += detailRow("Bounty", account.bounty);
+      detailsHtml += detailRow("Fruit", account.fruit);
+      detailsHtml += detailRow("Fighting Style", account.fightingStyle);
+      detailsHtml += detailRow("Race", account.race);
+    } else if(game === "minecraft"){
+      detailsHtml += detailRow("Username", account.account);
+      detailsHtml += detailRow("Access", account.mcAccess);
+      detailsHtml += detailRow("Platform", account.mcPlatform);
+      detailsHtml += detailRow("Rank", account.mcRank);
+      detailsHtml += detailRow("Capes / Items", account.mcCapes);
+    } else if(game === "digital goods"){
+      detailsHtml += detailRow("Platform", account.dgPlatform);
+      detailsHtml += detailRow("Inclusions", account.dgInclusions);
+      detailsHtml += detailRow("Account Info", account.account);
+    }
+
+    const imageTag = account.image_url ? `
+      <div style="margin-bottom: 12px; border-radius: 9px; overflow: hidden; height: 130px; background: var(--surface-soft);" class="clickable-thumb" onclick="openImageModal('${escapeHTML(account.image_url)}')">
+        <img src="${escapeHTML(account.image_url)}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+      </div>
+    ` : "";
+
+    previewContainer.innerHTML = `
+      ${imageTag}
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span class="game-badge" style="max-width: 100%;">${escapeHTML(account.game)}</span>
+        <span class="available-badge">AVAILABLE</span>
+      </div>
+      <div style="font-size: 13px; font-weight: 900; color: var(--text); margin-bottom: 10px;">ID: ${escapeHTML(account.id)}</div>
+      <div class="details-box" style="margin-bottom: 0;">${detailsHtml}</div>
+    `;
+
+    document.getElementById("onSiteOrderForm").reset();
     document.getElementById("modeOnSite").style.display = "block";
     document.getElementById("modeFb").style.display = "none";
     document.getElementById("orderSuccessView").style.display = "none";
@@ -1533,9 +1749,11 @@
 
     if (error) {
       console.error("Order Insertion Error Details:", error);
-      alert("❌ Hindi naisave ang order sa Database!\nError: " + error.message);
+      alert("❌ Failed to save order to Database!\nError: " + error.message);
       return;
     }
+
+    showToast(`Order created successfully! Code: ${uniqueOrderCode}`, '🎉');
 
     document.getElementById("modeOnSite").style.display = "none";
     document.getElementById("successOrderCode").textContent = uniqueOrderCode;
@@ -1692,6 +1910,10 @@
     const featuredClass = isFeatured ? "featured" : "";
     const featuredBadge = isFeatured ? `<span class="featured-badge">⭐ FEATURED</span>` : "";
 
+    const isWishlisted = wishlist.includes(account.id);
+    const wishlistActiveClass = isWishlisted ? "active" : "";
+    const wishlistIcon = isWishlisted ? "❤️" : "🤍";
+
     const newBadge = isNewAccount(account.date_added || account.dateAdded) ? `<span class="account-new-badge">🆕 NEW</span>` : "";
     const typeBadge = `<span class="type-badge">${escapeHTML(account.listing_type || 'Account')}</span>`;
     const safeGame = escapeHTML(account.game || "Unknown Game");
@@ -1722,6 +1944,7 @@
 
     return `
       <div class="account-card ${featuredClass}">
+        <button class="wishlist-btn ${wishlistActiveClass}" onclick="toggleWishlist('${safeId}')" title="Save to Wishlist">${wishlistIcon}</button>
         <div class="card-content-wrapper">
           ${imageHtml}
           <div class="card-top">
@@ -1738,7 +1961,7 @@
             ${priceHtml}
           </div>
         </div>
-        <button class="buy-btn" onclick="openCheckoutModal('${safeId}', '${escapeHTML(formatPrice(account.price))}', '${safeGame}')">🛒 BUY NOW</button>
+        <button class="buy-btn" onclick="openCheckoutModal('${safeId}')">🛒 BUY NOW</button>
       </div>
     `;
   }
